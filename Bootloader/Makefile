@@ -1,9 +1,9 @@
-CFLAGS := -target x86_64-pc-win32-coff -I$(PROJECT_ROOT)/ThirdParty/efi -fshort-wchar
-LDFLAGS := -target x86_64-pc-win32-coff -Wl,-subsystem:efi_application -Wl,-entry:efi_main
+CFLAGS := -target x86_64-pc-win32-coff -I$(PROJECT_ROOT)/ThirdParty/efi -fshort-wchar -fno-pie
+LDFLAGS := -target x86_64-pc-win32-coff -static -Wl,-subsystem:efi_application -Wl,-entry:efi_main
 
 PROJECT_NAME := Bootloader
 TARGET_NAME := bootldr.efi
-SRC := main.c helpers.c
+SRC := main.c helpers.c printf.c
 
 # define PROJECT_NAME, SRC and TARGET_NAME before including cproj.mak!!!
 include $(BS_ROOT)/cproj.mak

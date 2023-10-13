@@ -16,8 +16,8 @@ typedef struct elf_header {
 
   uint_32b elf_version;
   void *entry;
-  void *phdr_table;
-  void *shdr_table;
+  uint_64b phdr_table;
+  uint_64b shdr_table;
 
   uint_32b flags; // typically 0 on i386/x86-64
   uint_16b header_size;
@@ -29,5 +29,30 @@ typedef struct elf_header {
   uint_16b shdr_entries_num;
   uint_16b shdr_section_names_idx;
 } __attribute__((__packed__)) elf_header_t;
+
+typedef enum elf_segment_type : uint_32b {
+  elf_segt_null = 0,
+  elf_segt_load = 1,
+  elf_segt_dynamic = 2,
+  elf_segt_interp = 3,
+  elf_segt_note = 4
+} elf_segment_type_t;
+
+typedef enum elf_segment_flags : uint_32b {
+  executable = 1 << 0,
+  writable = 1 << 1,
+  readable = 1 << 2,
+} elf_segment_flags_t;
+
+typedef struct elf_phdr {
+  elf_segment_type_t type;
+  elf_segment_flags_t flags;
+  uint_64b offset;
+  uint_64b vaddr;
+  uint_64b undefined;
+  uint_64b filesz;
+  uint_64b memsz;
+  uint_64b alignment;
+} __attribute__((__packed__)) elf_phdr_t;
 
 #endif // __BL_ELF_H
