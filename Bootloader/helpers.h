@@ -1,10 +1,14 @@
 #ifndef __BL_HELPERS_H
 #define __BL_HELPERS_H
 
-typedef unsigned char uint_8b;
-typedef unsigned short uint_16b;
-typedef unsigned int uint_32b;
-typedef unsigned long long uint_64b;
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+
+#ifndef NULL
+#define NULL 0
+#endif
 
 // bool
 #ifndef true

@@ -13,8 +13,7 @@ PHDRS
 SECTIONS
 {
     /* place us in the higher half */
-    /* . = 0xffffffff80000000; */
-    . = 0x80000000; /* testing */
+    . = 0xffffffff80000000;
 
     .text : {
         *(.text .text.*)

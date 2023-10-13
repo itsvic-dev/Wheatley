@@ -5,6 +5,7 @@
 #include "elf.h"
 #include "helpers.h"
 #include "printf.h"
+#include "paging.h"
 
 EFI_HANDLE Image;
 EFI_SYSTEM_TABLE *ST;
@@ -21,7 +22,6 @@ void _putchar(char c) {
   wc[1] = 0;
   ST->ConOut->OutputString(ST->ConOut, wc);
 }
-
 
 EFI_STATUS GetImage(
   EFI_LOADED_IMAGE_PROTOCOL **image
@@ -58,8 +58,16 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   ST = st;
   BS = ST->BootServices;
 
+  ST->ConOut->ClearScreen(ST->ConOut);
+
   printf("hello, world!\r\n");
   EFI_STATUS status;
+
+  printf("fucking write protection in the ass\r\n");
+  __writecr0(__readcr0() & ~(1 << 16));
+
+  uint64_t *curPage = (uint64_t *)__readcr3();
+  printf("curPage: %#llx\r\n", curPage);
 
   EFI_LOADED_IMAGE_PROTOCOL *loadedImage;
   status = GetImage(&loadedImage);
@@ -84,7 +92,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   status = kernel->Read(kernel, &headerSize, &elfHeader);
   STATUS_PANIC("failed to read ELF header from file");
 
-  uint_8b expectedMagic[4];
+  uint8_t expectedMagic[4];
   expectedMagic[0] = 0x7f;
   expectedMagic[1] = 'E';
   expectedMagic[2] = 'L';
@@ -104,9 +112,6 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   ASSERT(elfHeader.phdr_entry_size == sizeof(elf_phdr_t));
 
   printf("lets read the phdr headers now\r\n");
-  void **phdr_physical_ptrs;
-  status = BS->AllocatePool(EfiLoaderData, sizeof(void *) * elfHeader.phdr_entries_num, (void **)&phdr_physical_ptrs);
-  STATUS_PANIC("failed to allocate ptrs buf");
 
   for (int i = 0; i < elfHeader.phdr_entries_num; i++) {
     status = kernel->SetPosition(kernel, elfHeader.phdr_table + (i * elfHeader.phdr_entry_size));
@@ -119,7 +124,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
     if (phdr.type == elf_segt_null) continue;
 
-    printf("----\n%s off %#llx vaddr %#llx align %d\r\n     filesz %#llx memsz %#llx flags %d\r\n",
+    printf("----\r\n%s off %#llx vaddr %#llx align %d\r\n     filesz %#llx memsz %#llx flags %d\r\n",
       phdr.type == elf_segt_load ? "LOAD" : "????",
       phdr.offset,
       phdr.vaddr,
@@ -128,34 +133,40 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
       phdr.memsz,
       phdr.flags);
     
-    phdr_physical_ptrs[i] = (void *)phdr.vaddr;
-    
     // this basic impl won't support any phdrs other than LOAD
     ASSERT(phdr.type == elf_segt_load);
 
-    // status = BS->AllocatePages(AllocateMaxAddress, EfiLoaderData,
-    //   (phdr.memsz + phdr.alignment - 1) / phdr.alignment, (EFI_PHYSICAL_ADDRESS *)&phdr_physical_ptrs[i]);
-    // STATUS_PANIC("failed to allocate page");
-    
-    // printf("allocated vaddr at %#llx\r\n", phdr_physical_ptrs[i]);
-    void *seg_ptr = (void *)phdr.vaddr;
+    int pageCount = (phdr.memsz + phdr.alignment - 1) / phdr.alignment;
 
-    // setmem doesnt wanna work so manually set zeroes
-    for (uint_64b i = 0; i < phdr.memsz; i++) {
-      *((uint_8b *)(seg_ptr) + i) = 0;
+    // allocate physical page for phdr data
+    void *physPage;
+    status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, pageCount, (uint64_t *)&physPage);
+    STATUS_PANIC("failed to allocate memory");
+    printf("allocated physical page @ %#llx\r\n", physPage);
+    for (uint64_t z = 0; z < pageCount; z++) {
+      uint64_t pageOffset = z * phdr.alignment;
+      if (!Paging_MapPage(curPage, (uint64_t)physPage + pageOffset, phdr.vaddr + pageOffset, 0b11)) {
+        Panic("failed to map page");
+      }
+    }
+    printf("mapped to virtual memory @ %#llx\r\n", phdr.vaddr);
+    
+    // setmem can go to hell
+    for (uint64_t i = 0; i < phdr.memsz; i++) {
+      *(uint8_t *)(physPage + i) = 0;
     }
     
     status = kernel->SetPosition(kernel, phdr.offset);
     STATUS_PANIC("failed to move file pos to phdr offset");
 
     size = phdr.filesz;
-    status = kernel->Read(kernel, &size, seg_ptr);
+    status = kernel->Read(kernel, &size, physPage);
     STATUS_PANIC("failed to read segment data from file into memory");
   }
-  BS->FreePool(phdr_physical_ptrs);
 
   kernel_entrypoint_t kernel_main = (kernel_entrypoint_t)elfHeader.entry;
-  printf("let's exit boot services and jump to kernel\r\n");
+  printf("let's jump to kernel\r\n");
+  // BS->ExitBootServices();
 
   kernel_main();
 
