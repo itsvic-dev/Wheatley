@@ -142,14 +142,15 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     void *physPage;
     status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, pageCount, (uint64_t *)&physPage);
     STATUS_PANIC("failed to allocate memory");
-    printf("allocated physical page @ %#llx\r\n", physPage);
+    printf("allocated %d physical pages @ %#llx\r\n", pageCount, physPage);
+
     for (uint64_t z = 0; z < pageCount; z++) {
       uint64_t pageOffset = z * phdr.alignment;
       if (!Paging_MapPage(curPage, (uint64_t)physPage + pageOffset, phdr.vaddr + pageOffset, 0b11)) {
         Panic("failed to map page");
       }
     }
-    printf("mapped to virtual memory @ %#llx\r\n", phdr.vaddr);
+    printf("mapped %d pages to virtual memory @ %#llx\r\n", pageCount, phdr.vaddr);
     
     // setmem can go to hell
     for (uint64_t i = 0; i < phdr.memsz; i++) {
@@ -162,11 +163,12 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     size = phdr.filesz;
     status = kernel->Read(kernel, &size, physPage);
     STATUS_PANIC("failed to read segment data from file into memory");
+
+    printf("%#x\r\n", *(uint8_t *)phdr.vaddr);
   }
 
   kernel_entrypoint_t kernel_main = (kernel_entrypoint_t)elfHeader.entry;
   printf("let's jump to kernel\r\n");
-  // BS->ExitBootServices();
 
   kernel_main();
 
