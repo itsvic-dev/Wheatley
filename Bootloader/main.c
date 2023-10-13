@@ -9,5 +9,8 @@ EFI_STATUS efi_main(EFI_HANDLE ih, EFI_SYSTEM_TABLE *st) {
 
   system_table->ConOut->OutputString(system_table->ConOut, L"hello, world!");
 
+  for (;;)
+    ;
+
   return EFI_SUCCESS;
 }

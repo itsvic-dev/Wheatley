@@ -7,14 +7,14 @@ build: $(PROJECT_NAME)
 $(PROJECT_NAME): $(CURRENT_BUILD_DIR)/.folder $(CURRENT_BUILD_DIR)/$(TARGET_NAME)
 
 $(CURRENT_BUILD_DIR)/.folder:
-	@echo -e "MKDIR\t($(PROJECT_NAME))"
+	@echo -e "MKDIR ($(PROJECT_NAME))"
 	@mkdir -p $(CURRENT_BUILD_DIR)
 	@touch $(CURRENT_BUILD_DIR)/.folder
 
 $(CURRENT_BUILD_DIR)/$(TARGET_NAME): $(OBJ)
-	@echo -e "LD\t($(PROJECT_NAME))\t$(TARGET_NAME)"
+	@echo -e "   LD ($(PROJECT_NAME))\t$(TARGET_NAME)"
 	@$(CC) $(GLOBAL_LDFLAGS) $(LDFLAGS) $(OBJ) -o $@
 
 $(CURRENT_BUILD_DIR)/%.o: %.c
-	@echo -e "CC\t($(PROJECT_NAME))\t$<"
+	@echo -e "   CC ($(PROJECT_NAME))\t$<"
 	@$(CC) $(GLOBAL_CFLAGS) $(CFLAGS) -c $< -o $@
