@@ -15,23 +15,19 @@ SECTIONS
     /* place us in the higher half */
     . = 0xffffffff80000000;
 
-    .text : {
+    .text : ALIGN(4K) {
         *(.text .text.*)
     } :text
 
-    . += CONSTANT(MAXPAGESIZE);
-
-    .rodata : {
+    .rodata : ALIGN(4K) {
         *(.rodata .rodata.*)
     } :rodata
 
-    . += CONSTANT(MAXPAGESIZE);
-
-    .data : {
+    .data : ALIGN(4K) {
         *(.data .data.*)
     } :data
 
-    .bss : {
+    .bss : ALIGN(4K) {
         *(.bss .bss.*)
         *(COMMON)
     } :data

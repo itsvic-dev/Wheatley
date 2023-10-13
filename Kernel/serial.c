@@ -32,3 +32,10 @@ void write_serial(char a) {
  
    outb(COM1_PORT, a);
 }
+
+void puts(const char *str) {
+   do {
+      write_serial(*str);
+   } while (*++str != 0);
+   write_serial('\n');
+}

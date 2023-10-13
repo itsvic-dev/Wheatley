@@ -52,6 +52,17 @@ void Panic(char *msg) {
 
 typedef void (*kernel_entrypoint_t)(void);
 
+uint64_t __kernelEntry;
+
+void JumpToKernel(uint64_t stack) {
+  asm volatile(
+    "mov %[stack], %%rsp \n"
+    "jmp *__kernelEntry"
+    :
+    : [stack] "q"(stack)
+    : "memory"
+  );
+}
 
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   Image = image;
@@ -68,6 +79,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   uint64_t *curPage = (uint64_t *)__readcr3();
   printf("curPage: %#llx\r\n", curPage);
+
+  printf("lets start loading the kernel now\r\n");
 
   EFI_LOADED_IMAGE_PROTOCOL *loadedImage;
   status = GetImage(&loadedImage);
@@ -92,11 +105,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   status = kernel->Read(kernel, &headerSize, &elfHeader);
   STATUS_PANIC("failed to read ELF header from file");
 
-  uint8_t expectedMagic[4];
-  expectedMagic[0] = 0x7f;
-  expectedMagic[1] = 'E';
-  expectedMagic[2] = 'L';
-  expectedMagic[3] = 'F';
+  uint8_t expectedMagic[] = {0x7F, 'E', 'L', 'F'};
 
   if (!memcmp(elfHeader.magic, expectedMagic, 4)) {
     Panic("ELF magic does not match (or memcmp is faulty)");
@@ -163,19 +172,32 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     size = phdr.filesz;
     status = kernel->Read(kernel, &size, physPage);
     STATUS_PANIC("failed to read segment data from file into memory");
-
-    printf("%#x\r\n", *(uint8_t *)phdr.vaddr);
   }
 
-  kernel_entrypoint_t kernel_main = (kernel_entrypoint_t)elfHeader.entry;
-  printf("let's jump to kernel\r\n");
+  void *stack = NULL;
+  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, 8, (uint64_t *)&stack);
+  STATUS_PANIC("failed to allocate stack pages");
 
-  kernel_main();
+  for (int z = 0; z < 8; z++) {
+    int pageOffset = z * 0x1000;
+    if (!Paging_MapPage(curPage, (uint64_t)stack + pageOffset, (uint64_t)stack + pageOffset, 0b11))
+      Panic("failed to map the stack");
+  }
+  printf("new stack @ %#llx\r\n", stack);
 
-  printf("if you see this we returned from kernel main, aka FAIL.\r\n");
+  __kernelEntry = (uint64_t) elfHeader.entry;
 
-  for (;;)
-    ;
+  UINTN MemoryMapSize = 0;
+	EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
+	UINTN MapKey;
+	UINTN DescriptorSize;
+	UINT32 DescriptorVersion;
+  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
 
-  return EFI_SUCCESS;
+  printf("exiting boot services and calling kernel. goodbye\r\n");
+  BS->ExitBootServices(Image, MapKey);
+
+  JumpToKernel((uint64_t) stack);
+
+  return EFI_ERR;
 }

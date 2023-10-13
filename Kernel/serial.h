@@ -7,5 +7,6 @@
 
 bool init_serial();
 void write_serial(char a);
+void puts(const char *str);
 
 #endif // __KERNEL_SERIAL_H
