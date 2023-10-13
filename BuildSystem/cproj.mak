@@ -11,9 +11,9 @@ $(CURRENT_BUILD_DIR)/.folder:
 	@mkdir -p $(CURRENT_BUILD_DIR)
 	@touch $(CURRENT_BUILD_DIR)/.folder
 
-$(CURRENT_BUILD_DIR)/$(TARGET_NAME): $(OBJ)
+$(CURRENT_BUILD_DIR)/$(TARGET_NAME): $(OBJ) $(PRECOMPILED_OBJ)
 	@echo -e "   LD ($(PROJECT_NAME))\t$(TARGET_NAME)"
-	@$(CC) $(GLOBAL_LDFLAGS) $(LDFLAGS) $(OBJ) -o $@
+	@$(CC) $(GLOBAL_LDFLAGS) $(LDFLAGS) $(OBJ) $(PRECOMPILED_OBJ) -o $@
 
 $(CURRENT_BUILD_DIR)/%.o: %.c
 	@echo -e "   CC ($(PROJECT_NAME))\t$<"
