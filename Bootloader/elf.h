@@ -1,12 +1,9 @@
 #ifndef __BL_ELF_H
 #define __BL_ELF_H
 
-typedef unsigned char uint_8b;
-typedef unsigned short uint_16b;
-typedef unsigned int uint_32b;
-typedef unsigned long long uint_64b;
+#include "helpers.h"
 
-struct elf_header {
+typedef struct elf_header {
   uint_8b magic[4];  // \x7fELF
   uint_8b arch_bits; // 2 for 64-bit
   uint_8b arch_mode; // 1 for LE, 2 for BE
@@ -31,6 +28,6 @@ struct elf_header {
   uint_16b shdr_entry_size;
   uint_16b shdr_entries_num;
   uint_16b shdr_section_names_idx;
-} __attribute__((__packed__));
+} __attribute__((__packed__)) elf_header_t;
 
 #endif // __BL_ELF_H
