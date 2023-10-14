@@ -12,4 +12,6 @@ fat32: $(FAT32_IMG)
 
 qemu: $(FAT32_IMG)
 	@echo -e "  QEMU\tComatOS.img"
-	qemu-system-x86_64 -enable-kvm -drive if=pflash,readonly=on,file=/usr/share/edk2-ovmf/OVMF_CODE.fd -hda $(FAT32_IMG) -serial stdio
+	qemu-system-x86_64 -M q35 -m 128M -cpu host -enable-kvm \
+		-drive if=pflash,readonly=on,file=/usr/share/edk2-ovmf/OVMF_CODE.fd \
+		-hda $(FAT32_IMG) -serial stdio

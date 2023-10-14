@@ -66,6 +66,23 @@ void JumpToKernel(uint64_t stack) {
   );
 }
 
+bootproto_mmap_entry_type_t efi_type_to_bootproto_type[] = {
+  reserved,
+  reserved,
+  reserved,
+  free,
+  free,
+  used,
+  used,
+  free,
+  reserved,
+  reserved,
+  reserved,
+  reserved,
+  reserved,
+  reserved,
+};
+
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   Image = image;
   ST = st;
@@ -82,24 +99,19 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   uint64_t *curPage = (uint64_t *)__readcr3();
   printf("curPage: %#llx\r\n", curPage);
 
-  printf("lets start loading the kernel now\r\n");
-
   EFI_LOADED_IMAGE_PROTOCOL *loadedImage;
+  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *rootfs;
+  EFI_FILE_PROTOCOL *rootdir;
+  EFI_FILE_PROTOCOL *kernel;
+
   status = GetImage(&loadedImage);
   STATUS_PANIC("couldn't get LIP");
-
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *rootfs;
   status = GetRootfs(loadedImage->DeviceHandle, &rootfs);
   STATUS_PANIC("couldn't get SFSP");
-
-  EFI_FILE_PROTOCOL *rootdir;
   status = rootfs->OpenVolume(rootfs, &rootdir);
   STATUS_PANIC("couldn't get root FP");
-
-  EFI_FILE_PROTOCOL *kernel;
   status = rootdir->Open(rootdir, &kernel, L"kernel.elf", EFI_FILE_MODE_READ, 0);
   STATUS_PANIC("couldn't get kernel.elf");
-
   printf("we have the kernel elf, lets try reading the elf header now\r\n");
 
   elf_header_t elfHeader;
@@ -178,7 +190,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   // define stack
   void *stack = NULL;
-  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, 8, (uint64_t *)&stack);
+  status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, 8, (uint64_t *)&stack);
   STATUS_PANIC("failed to allocate stack pages");
 
   for (int z = 0; z < 8; z++) {
@@ -189,7 +201,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   printf("new stack @ %#llx\r\n", stack);
 
   // prepare handoff
-  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, 1, (uint64_t *)&handoff);
+  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, ((sizeof(bootproto_handoff_t)) / 4096) + 1, (uint64_t *)&handoff);
   STATUS_PANIC("failed to allocate page for handoff");
 
   // get GOP for handoff
@@ -205,16 +217,36 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   handoff->fb_pixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
   printf("found GOP framebuffer %dx%d @ %#llx\r\n", handoff->fb_width, handoff->fb_height, handoff->fb_buffer);
 
-  printf("handoff ready @ %#llx\r\n", handoff);
-
-  __kernelEntry = (uint64_t) elfHeader.entry;
-
-  UINTN MemoryMapSize = 0;
+  // get memory map and pass it off to handoff
+  uint64_t MemoryMapSize = 0;
 	EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
-	UINTN MapKey;
-	UINTN DescriptorSize;
-	UINT32 DescriptorVersion;
+	uint64_t MapKey;
+	uint64_t DescriptorSize;
+	uint32_t DescriptorVersion;
+
+  uint64_t totalMemSize = 0;
+
   BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+  MemoryMapSize += DescriptorSize * 2;
+  BS->AllocatePool(2, MemoryMapSize, (void **)&MemoryMap);
+  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+
+  handoff->mmap_entries_length = 0;
+
+  for (int i = 0; i < (MemoryMapSize / DescriptorSize) / 2 + 1; i++) {
+    EFI_MEMORY_DESCRIPTOR *memEntry = (EFI_MEMORY_DESCRIPTOR *)((uint64_t)MemoryMap + (i * DescriptorSize));
+    
+    handoff->mmap_entry[handoff->mmap_entries_length].type = efi_type_to_bootproto_type[memEntry->Type];
+    handoff->mmap_entry[handoff->mmap_entries_length].start = memEntry->PhysicalStart;
+    handoff->mmap_entry[handoff->mmap_entries_length++].pages = memEntry->NumberOfPages;
+    
+    totalMemSize += memEntry->NumberOfPages * 4096;
+  }
+
+  printf("total memory size: %d MB\r\n", totalMemSize / 1000 / 1000);
+
+  printf("handoff ready @ %#llx\r\n", handoff);
+  __kernelEntry = (uint64_t) elfHeader.entry;
 
   printf("exiting boot services and calling kernel. goodbye\r\n");
   BS->ExitBootServices(Image, MapKey);
