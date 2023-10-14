@@ -15,4 +15,7 @@ typedef struct {
 
 int fb_register_driver(fb_driver_t *driver);
 
+fb_driver_t *fb_get_driver(int idx);
+int fb_get_driver_count(void);
+
 #endif // __KERNEL_DRIVERS_FB_FB_H
