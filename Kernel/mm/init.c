@@ -46,7 +46,6 @@ void mm_init(void) {
 
     for (int i = 0; i < g_handoff->mmap_entries_length; i++) {
         bootproto_mmap_entry_t *entry = &g_handoff->mmap_entry[i];
-        MM_PRINT("entry=%#llx i=%d type=%d", entry, i, entry->type);
 
         if (entry->type == free) {
             for (int i = 0; i < entry->pages; i++) {
@@ -55,7 +54,6 @@ void mm_init(void) {
             }
         }
         if (entry->type == used) {
-            MM_PRINT("used!!");
             _mm_add_alloc(entry);
         }
     }
