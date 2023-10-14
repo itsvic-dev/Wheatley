@@ -10,11 +10,11 @@ all: bootloader kernel
 .PHONY: all
 
 bootloader:
-	@echo -e " MAKE (Bootloader)"
+	@echo -e "   MAKE (Bootloader)"
 	@$(MAKE) -C Bootloader build
 
 kernel:
-	@echo -e " MAKE (Kernel)"
+	@echo -e "   MAKE (Kernel)"
 	@$(MAKE) -C Kernel build
 
 clean:

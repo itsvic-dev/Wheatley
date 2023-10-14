@@ -12,8 +12,8 @@ int fb_register_driver(fb_driver_t *driver) {
 }
 
 fb_driver_t *fb_get_driver(int idx) {
-    if (idx > fb_drivers_count) return NULL;
-    return fb_drivers[fb_drivers_count];
+    if (idx >= fb_drivers_count) return NULL;
+    return fb_drivers[idx];
 }
 
 int fb_get_driver_count(void) {

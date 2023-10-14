@@ -13,7 +13,7 @@ int tty_register_driver(const tty_driver_t *driver) {
 
 const tty_driver_t *tty_get_driver(int idx) {
     if (idx > tty_drivers_count) return NULL;
-    return tty_drivers[tty_drivers_count];
+    return tty_drivers[idx];
 }
 
 int tty_get_driver_count(void) {
