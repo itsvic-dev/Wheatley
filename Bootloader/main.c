@@ -1,15 +1,19 @@
 #include <efi.h>
 #include <protocol/efi-fp.h>
+#include <protocol/efi-gop.h>
 #include <protocol/efi-lip.h>
 #include <protocol/efi-sfsp.h>
 #include "elf.h"
 #include "helpers.h"
 #include "printf.h"
 #include "paging.h"
+#include "bootproto.h"
 
 EFI_HANDLE Image;
 EFI_SYSTEM_TABLE *ST;
 EFI_BOOT_SERVICES *BS;
+
+bootproto_handoff_t *handoff = NULL;
 
 typedef unsigned short wchar;
 
@@ -49,17 +53,15 @@ void Panic(char *msg) {
 #define STR(x) __STR(x)
 #define ASSERT(cond) if (!(cond)) Panic("assert failed: " #cond " (on line " STR(__LINE__) ")")
 
-
-typedef void (*kernel_entrypoint_t)(void);
-
 uint64_t __kernelEntry;
 
 void JumpToKernel(uint64_t stack) {
   asm volatile(
     "mov %[stack], %%rsp \n"
+    "mov %[handoff], %%rdi \n"
     "jmp *__kernelEntry"
     :
-    : [stack] "q"(stack)
+    : [stack] "q"(stack), [handoff] "q"(handoff)
     : "memory"
   );
 }
@@ -184,6 +186,25 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
       Panic("failed to map the stack");
   }
   printf("new stack @ %#llx\r\n", stack);
+
+  // prepare handoff
+  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, 1, (uint64_t *)&handoff);
+  STATUS_PANIC("failed to allocate page for handoff");
+
+  // get GOP for handoff
+  EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+  status = BS->LocateProtocol(&gopGuid, NULL, (void **)&gop);
+  STATUS_PANIC("failed to get GOP");
+
+  // pass framebuffer info from GOP to handoff
+  handoff->fb_buffer = (uint32_t *)gop->Mode->FrameBufferBase;
+  handoff->fb_width = gop->Mode->Info->HorizontalResolution;
+  handoff->fb_height = gop->Mode->Info->VerticalResolution;
+  handoff->fb_pixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
+  printf("found GOP framebuffer %dx%d @ %#llx\r\n", handoff->fb_width, handoff->fb_height, handoff->fb_buffer);
+
+  printf("handoff ready @ %#llx\r\n", handoff);
 
   __kernelEntry = (uint64_t) elfHeader.entry;
 

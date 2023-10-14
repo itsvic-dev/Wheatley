@@ -39,3 +39,5 @@ void puts(const char *str) {
    } while (*++str != 0);
    write_serial('\n');
 }
+
+void _putchar(char a) { write_serial(a); }

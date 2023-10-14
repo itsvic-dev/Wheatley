@@ -1,6 +1,6 @@
 PROJECT_NAME := Kernel
 TARGET_NAME := kernel.elf
-SRC := main.c io.c serial.c
+SRC := main.c io.c serial.c printf.c
 
 PRECOMPILED_OBJ := kernel.ld
 
