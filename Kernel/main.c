@@ -9,6 +9,9 @@
 #include "mm/init.h"
 #include "mm/mm.h"
 
+#include "libk.h"
+#include "panic.h"
+
 bootproto_handoff_t *g_handoff;
 
 void kernel_main(bootproto_handoff_t *handoff) {
@@ -22,8 +25,5 @@ void kernel_main(bootproto_handoff_t *handoff) {
   // init MM
   mm_init();
 
-  printf("hello from ComatOS!\n");
-
-  for (;;)
-    __asm__("hlt");
+  panic("we're done for now");
 }

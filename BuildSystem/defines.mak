@@ -1,7 +1,7 @@
 CC := clang
 GLOBAL_CFLAGS := -g -Wall -Werror \
 	-I$(PROJECT_ROOT)/Includes \
-	-ffreestanding -fno-stack-protector -fno-stack-check -mno-red-zone \
+	-ffreestanding -mno-red-zone \
 	-nostdlib -MD
 
 GLOBAL_LDFLAGS := -fuse-ld=lld -nostdlib

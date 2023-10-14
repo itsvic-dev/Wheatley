@@ -1,10 +1,12 @@
 PROJECT_NAME := Kernel
 TARGET_NAME := kernel.elf
-SRC := main.c io.c libk.c printf.c \
+SRC := main.c io.c libk.c panic.c printf.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \
 	mm/init.c mm/internal.c mm/mm.c \
+
+CFLAGS := -fstack-protector
 
 PRECOMPILED_OBJ := kernel.ld $(OUTPUT_DIRECTORY)/$(PROJECT_NAME)/Tamsyn8x16r.o
 

@@ -1,4 +1,6 @@
-CFLAGS := -target x86_64-pc-win32-coff -I$(PROJECT_ROOT)/ThirdParty/efi -fshort-wchar -fno-pie
+CFLAGS := -target x86_64-pc-win32-coff -I$(PROJECT_ROOT)/ThirdParty/efi -fshort-wchar -fno-pie \
+	-fno-stack-protector -fno-stack-check \
+
 LDFLAGS := -target x86_64-pc-win32-coff -static -Wl,-subsystem:efi_application -Wl,-entry:efi_main
 
 PROJECT_NAME := Bootloader
