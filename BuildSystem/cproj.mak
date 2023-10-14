@@ -14,3 +14,5 @@ $(CURRENT_BUILD_DIR)/%.o: %.c
 	@echo -e "   CC ($(PROJECT_NAME))\t$<"
 	@mkdir -p $(dir $@)
 	@$(CC) $(GLOBAL_CFLAGS) $(CFLAGS) -c $< -o $@
+
+include $(OBJ:.o=.d)
