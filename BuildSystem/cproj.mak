@@ -13,6 +13,6 @@ $(CURRENT_BUILD_DIR)/$(TARGET_NAME): $(OBJ) $(PRECOMPILED_OBJ)
 $(CURRENT_BUILD_DIR)/%.o: %.c
 	@echo -e "   CC ($(PROJECT_NAME))\t$<"
 	@mkdir -p $(dir $@)
-	@$(CC) $(GLOBAL_CFLAGS) $(CFLAGS) -c $< -o $@
+	@$(CC) $(GLOBAL_CFLAGS) -I$(shell pwd) $(CFLAGS) -c $< -o $@
 
-include $(OBJ:.o=.d)
+-include $(OBJ:.o=.d)

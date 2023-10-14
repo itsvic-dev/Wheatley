@@ -176,6 +176,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     STATUS_PANIC("failed to read segment data from file into memory");
   }
 
+  // define stack
   void *stack = NULL;
   status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, 8, (uint64_t *)&stack);
   STATUS_PANIC("failed to allocate stack pages");
@@ -218,7 +219,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   printf("exiting boot services and calling kernel. goodbye\r\n");
   BS->ExitBootServices(Image, MapKey);
 
-  JumpToKernel((uint64_t) stack);
+  JumpToKernel((uint64_t) stack + (8 * 4096));
 
   return EFI_ERR;
 }

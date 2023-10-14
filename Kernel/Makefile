@@ -1,6 +1,7 @@
 PROJECT_NAME := Kernel
 TARGET_NAME := kernel.elf
-SRC := main.c io.c serial.c printf.c
+SRC := main.c io.c serial.c printf.c \
+	drivers/fb/fb.c drivers/fb/efifb.c \
 
 PRECOMPILED_OBJ := kernel.ld
 
