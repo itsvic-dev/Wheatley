@@ -2,8 +2,31 @@
 #include "panic.h"
 #include "printf.h"
 
+typedef struct stackframe {
+    struct stackframe *rbp;
+    uint64_t rip;
+} stackframe_t;
+
+void panic_backtrace(uint64_t maxFrames) {
+    stackframe_t *frame;
+    asm("mov %%rbp,%0" : "=q"(frame) ::); // load RBP into the stack frame ptr
+
+    for (uint64_t i = 0; frame && i < maxFrames; ++i) {
+        printf("  0x%016llx\n", frame->rip);
+        frame = frame->rbp;
+    }
+}
+
+bool already_panicked = false;
+
 __attribute__((noreturn))
 void panic(const char *reason, registers_t *r) {
+    if (already_panicked) {
+        printf("*** PANIC called after/within panic\n");
+        goto end;
+    }
+    already_panicked = true;
+
     printf("\n*** PANIC: %s ***\n", reason);
 
     if (r == NULL) {
@@ -36,6 +59,10 @@ void panic(const char *reason, registers_t *r) {
         );
     }
 
+    printf("\nBacktrace:\n");
+    panic_backtrace(16);
+
+end:
     printf("\n*** Halting now, good night.\n");
     for (;;) asm("hlt");
 }
