@@ -54,17 +54,7 @@ void Panic(char *msg) {
 #define ASSERT(cond) if (!(cond)) Panic("assert failed: " #cond " (on line " STR(__LINE__) ")")
 
 uint64_t __kernelEntry;
-
-void JumpToKernel(uint64_t stack) {
-  asm volatile(
-    "mov %[stack], %%rsp \n"
-    "mov %[handoff], %%rdi \n"
-    "jmp *__kernelEntry"
-    :
-    : [stack] "q"(stack), [handoff] "q"(handoff)
-    : "memory"
-  );
-}
+void JumpToKernel(uint64_t stack);
 
 bootproto_mmap_entry_type_t efi_type_to_bootproto_type[] = {
   reserved,
