@@ -3,7 +3,9 @@
 #include <protocol/efi-gop.h>
 #include <protocol/efi-lip.h>
 #include <protocol/efi-sfsp.h>
+#include "assert.h"
 #include "elf.h"
+#include "elfloader.h"
 #include "helpers.h"
 #include "printf.h"
 #include "paging.h"
@@ -47,11 +49,6 @@ void Panic(char *msg) {
   printf("panic: %s\r\n", msg);
   for (;;) __asm__("int3");
 }
-
-#define STATUS_PANIC(msg) if (status != EFI_SUCCESS) Panic(msg);
-#define __STR(x) #x
-#define STR(x) __STR(x)
-#define ASSERT(cond) if (!(cond)) Panic("assert failed: " #cond " (on line " STR(__LINE__) ")")
 
 uint64_t __kernelEntry;
 void JumpToKernel(uint64_t stack);
@@ -109,13 +106,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   status = kernel->Read(kernel, &headerSize, &elfHeader);
   STATUS_PANIC("failed to read ELF header from file");
 
-  uint8_t expectedMagic[] = {0x7F, 'E', 'L', 'F'};
-
-  if (!memcmp(elfHeader.magic, expectedMagic, 4)) {
-    Panic("ELF magic does not match (or memcmp is faulty)");
-  }
-
-  printf("ELF magic matches!! :partying_face:\r\n");
+  ASSERT(elfHeader.magic == ELF_MAGIC);
 
   printf("entry point: %#llx\r\n", elfHeader.entry);
   printf("program header offset: %#x\r\n", elfHeader.phdr_table);
@@ -194,6 +185,9 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, ((sizeof(bootproto_handoff_t)) / 4096) + 1, (uint64_t *)&handoff);
   STATUS_PANIC("failed to allocate page for handoff");
 
+  // read ELF symbol table and dump it into handoff
+  elf_load_symbols(&elfHeader, kernel, handoff);
+
   // get GOP for handoff
   EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
   EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
@@ -218,7 +212,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
   MemoryMapSize += DescriptorSize * 2;
-  BS->AllocatePool(2, MemoryMapSize, (void **)&MemoryMap);
+  BS->AllocatePool(EfiLoaderData, MemoryMapSize, (void **)&MemoryMap);
   BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
 
   handoff->mmap_entries_length = 0;

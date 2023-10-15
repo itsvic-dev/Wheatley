@@ -17,8 +17,16 @@ typedef struct {
 } __attribute__((__packed__)) bootproto_mmap_entry_t;
 
 typedef struct {
+  char name[64];
+  uint64_t addr;
+} __attribute__((__packed__)) bootproto_symbol_t;
+
+typedef struct {
   bootproto_mmap_entry_t mmap_entry[128];
-  int mmap_entries_length;
+  uint8_t mmap_entries_length;
+
+  bootproto_symbol_t symbols[256];
+  int symbols_length;
 
   // framebuffer data
   uint32_t *fb_buffer;

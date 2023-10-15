@@ -1,18 +1,36 @@
 #include "stdint.h"
 #include "panic.h"
 #include "printf.h"
+#include "libk.h"
 
 typedef struct stackframe {
     struct stackframe *rbp;
     uint64_t rip;
 } stackframe_t;
 
+bootproto_symbol_t *find_symbol(uint64_t rip) {
+    bootproto_symbol_t *bestFittingSymbol = 0;
+
+    for (int i = 0; i < g_handoff->symbols_length; i++) {
+        bootproto_symbol_t *symbol = &g_handoff->symbols[i];
+        if (symbol->addr <= rip && (bestFittingSymbol == 0 || symbol->addr >= bestFittingSymbol->addr)) {
+            bestFittingSymbol = symbol;
+        }
+    }
+
+    return bestFittingSymbol;
+}
+
 void panic_backtrace(uint64_t maxFrames) {
     stackframe_t *frame;
     asm("mov %%rbp,%0" : "=q"(frame) ::); // load RBP into the stack frame ptr
 
     for (uint64_t i = 0; frame && i < maxFrames; ++i) {
-        printf("  0x%016llx\n", frame->rip);
+        bootproto_symbol_t *symbol = find_symbol(frame->rip);
+        if (symbol != 0)
+            printf("  0x%016llx (%s+%#x)\n", frame->rip, symbol->name, frame->rip - symbol->addr);
+        else
+            printf("  0x%016llx (\?\?\?\?)\n", frame->rip);
         frame = frame->rbp;
     }
 }

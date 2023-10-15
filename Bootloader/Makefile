@@ -5,7 +5,7 @@ LDFLAGS := -target x86_64-pc-win32-coff -static -Wl,-subsystem:efi_application -
 
 PROJECT_NAME := Bootloader
 TARGET_NAME := bootldr.efi
-SRC := main.c jump.asm helpers.c paging.c printf.c
+SRC := main.c elfloader.c jump.asm helpers.c paging.c printf.c
 
 # NASM needs to produce Win64 object files
 override GLOBAL_ASFLAGS = -f win64
