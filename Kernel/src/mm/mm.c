@@ -86,6 +86,4 @@ void kfree(void *buf) {
     for (int i = 0; i < alloc->pageCount; i++) {
         _mm_clear_page_bit(page + i);
     }
-
-    MM_PRINT("kfree: done");
 }

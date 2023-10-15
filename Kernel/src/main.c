@@ -9,6 +9,7 @@
 #include <mm/init.h>
 #include <mm/mm.h>
 
+#include <sys/cpuid.h>
 #include <sys/idt.h>
 #include <sys/isr.h>
 #include <libk.h>
@@ -29,6 +30,10 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   setup_idt();
   setup_isrs();
+
+  cpuid_data_t cpuid_data = cpuid(0);
+  get_cpuid_string(cpu_oem_id, &cpuid_data);
+  printf("CPU manufacturer: %s\n", cpu_oem_id);
   
   panic("we're done for now", 0);
 }

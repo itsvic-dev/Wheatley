@@ -5,7 +5,7 @@ SRC := main.c libk.c panic.c printf.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \
 	mm/init.c mm/internal.c mm/mm.c \
-	sys/idt.c sys/isr.asm sys/isr.c sys/io.c \
+	sys/cpuid.c sys/idt.c sys/isr.asm sys/isr.c sys/io.c \
 
 CFLAGS := -fstack-protector
 
