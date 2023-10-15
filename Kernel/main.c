@@ -10,15 +10,11 @@
 #include "mm/mm.h"
 
 #include "idt.h"
+#include "isr.h"
 #include "libk.h"
 #include "panic.h"
 
 bootproto_handoff_t *g_handoff;
-
-void INTERRUPT int_bp(interrupt_frame_t *frame);
-void INTERRUPT int_gp(interrupt_frame_t *frame);
-void INTERRUPT int_pf(interrupt_frame_t *frame);
-void INTERRUPT int_df(interrupt_frame_t *frame);
 
 void kernel_main(bootproto_handoff_t *handoff) {
   g_handoff = handoff;
@@ -32,26 +28,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
   mm_init();
 
   setup_idt();
-  idt_set_handler(3, trap, &int_bp);
-  idt_set_handler(8, trap, &int_df);
-  idt_set_handler(13, trap, &int_gp);
-  idt_set_handler(14, trap, &int_pf);
+  setup_isrs();
   
-  panic("we're done for now");
-}
-
-void INTERRUPT int_bp(interrupt_frame_t *frame) {
-  panic_interrupt("Breakpoint (#BP)", frame);
-}
-
-void INTERRUPT int_gp(interrupt_frame_t *frame) {
-  panic_interrupt("General Protection (#GP)", frame);
-}
-
-void INTERRUPT int_pf(interrupt_frame_t *frame) {
-  panic_interrupt("Page Fault (#PF)", frame);
-}
-
-void INTERRUPT int_df(interrupt_frame_t *frame) {
-  panic_interrupt("Double Fault (#DF)", frame);
+  panic("we're done for now", 0);
 }

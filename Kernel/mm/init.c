@@ -2,6 +2,7 @@
 #include "init.h"
 #include "libk.h"
 #include "internal.h"
+#include "assert.h"
 
 uint32_t *_mm_pages = NULL;
 uint64_t _mm_page_count = 0;
@@ -34,7 +35,7 @@ void mm_init(void) {
             break;
         }
     }
-    // fixme: panic if _mm_allocs is null
+    assert(_mm_pages != NULL);
     // put _mm_allocs after _mm_pages
     _mm_allocs = (mm_alloc_data_t *)((uint64_t)_mm_pages + _mm_page_count);
 

@@ -21,22 +21,23 @@ void setup_idt(void) {
     memset(idt_table, 0, 256 * sizeof(idt_descriptor_t));
 }
 
-void idt_set_handler(uint8_t vector, idt_gate_t gate, void *isr) {
+void idt_set_handler(uint8_t vector, uint8_t ist, void *isr) {
     idt_descriptor_t *desc = &idt_table[vector];
     uint64_t offset = (uint64_t)isr;
     desc->offset_1 = offset & 0xFFFF;
     desc->offset_2 = (offset >> 16) & 0xFFFF;
     desc->offset_3 = offset >> 32;
     desc->selector = selector;
-    desc->ist = 0;
+    desc->ist = ist;
     
-    uint8_t type_attributes = 0;
-    // segment present flag
-    type_attributes |= (1 << 7);
-    // descriptor privilege level
-    type_attributes |= (0b00 << 5);
-    // type
-    type_attributes |= gate & 0b1111;
-    desc->type_attributes = type_attributes;
-    printf("idt: handler for %#x @ %#llx registered\n", vector, offset);
+    if (vector < 0x10) {
+        // interrupts that kernel and usermode can handle
+        if (((vector < 0xB) && (vector > 0x6)) || vector == 0x2)
+            desc->type_attributes = 0x8F;
+        else
+            desc->type_attributes = 0xEF;
+    } else {
+        // interrupts only the kernel should handle
+        desc->type_attributes = 0x8E;
+    }
 }

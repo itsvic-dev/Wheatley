@@ -3,6 +3,6 @@
 
 #include "panic.h"
 
-#define assert(expr) if (!(expr)) panic("Assertion failed: " #expr)
+#define assert(expr) if (!(expr)) panic("Assertion failed: " #expr, 0)
 
 #endif // __KERNEL_ASSERT_H

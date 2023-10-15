@@ -1,5 +1,6 @@
 #include "mm.h"
 #include "internal.h"
+#include "panic.h"
 
 uint64_t _mm_find_page(uint64_t len) {
     for (int i = 0; i < _mm_page_count * 8; i++) {
@@ -76,10 +77,8 @@ void kfree(void *buf) {
     mm_alloc_data_t *alloc = _mm_find_alloc(page);
 
     // if none, bail
-    // fixme: panic()
     if (alloc == NULL) {
-        MM_PRINT("kfree: failed to find alloc");
-        return;
+        panic("kfree: failed to find alloc", 0);
     };
 
     // otherwise, set allocation and flag bits as unused

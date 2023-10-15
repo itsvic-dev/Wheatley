@@ -13,23 +13,8 @@ typedef struct {
    uint32_t zero;            // reserved
 } __attribute__((__packed__)) idt_descriptor_t;
 
-typedef enum {
-    interrupt = 0b1110,
-    trap = 0b1111,
-} idt_gate_t;
-
-typedef struct {
-    uint64_t ip;
-    uint64_t cs;
-    uint64_t flags;
-    uint64_t sp;
-    uint64_t ss;
-} interrupt_frame_t;
-
 void setup_idt(void);
 
-void idt_set_handler(uint8_t vector, idt_gate_t gate, void *isr);
-
-#define INTERRUPT __attribute__((interrupt))
+void idt_set_handler(uint8_t vector, uint8_t ist, void *isr);
 
 #endif // __KERNEL_IDT_H
