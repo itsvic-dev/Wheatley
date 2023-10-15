@@ -11,12 +11,12 @@ $(OUT_DIR)/$(TARGET_NAME): $(OBJ) $(PRECOMPILED_OBJ)
 	@$(CC) $(GLOBAL_LDFLAGS) $(LDFLAGS) $(OBJ) $(PRECOMPILED_OBJ) -o $@
 
 $(OUT_DIR)/%.c.o: %.c
-	@echo -e "     CC ($(PROJECT_NAME))\t$<"
+	@echo -e "     CC ($(PROJECT_NAME))\t$(patsubst src/%,%,$<)"
 	@mkdir -p $(dir $@)
 	@$(CC) $(GLOBAL_CFLAGS) -I$(shell pwd)/inc $(CFLAGS) -c $< -o $@
 
 $(OUT_DIR)/%.asm.o: %.asm
-	@echo -e "     AS ($(PROJECT_NAME))\t$<"
+	@echo -e "     AS ($(PROJECT_NAME))\t$(patsubst src/%,%,$<)"
 	@mkdir -p $(dir $@)
 	@$(AS) $(GLOBAL_ASFLAGS) $(ASFLAGS) -MD $(patsubst %.o,%.d,$@) -o $@ $<
 
