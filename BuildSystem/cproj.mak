@@ -1,7 +1,7 @@
 # Defines rules for a C project.
 
 OUT_DIR := $(OUTPUT_DIRECTORY)/$(PROJECT_NAME)
-OBJ := $(addprefix $(OUT_DIR)/,$(addsuffix .o,$(SRC)))
+OBJ := $(addprefix $(OUT_DIR)/,$(addsuffix .o,$(addprefix src/,$(SRC))))
 
 build: $(PROJECT_NAME)
 $(PROJECT_NAME): $(OUT_DIR)/$(TARGET_NAME)
@@ -13,7 +13,7 @@ $(OUT_DIR)/$(TARGET_NAME): $(OBJ) $(PRECOMPILED_OBJ)
 $(OUT_DIR)/%.c.o: %.c
 	@echo -e "     CC ($(PROJECT_NAME))\t$<"
 	@mkdir -p $(dir $@)
-	@$(CC) $(GLOBAL_CFLAGS) -I$(shell pwd) $(CFLAGS) -c $< -o $@
+	@$(CC) $(GLOBAL_CFLAGS) -I$(shell pwd)/inc $(CFLAGS) -c $< -o $@
 
 $(OUT_DIR)/%.asm.o: %.asm
 	@echo -e "     AS ($(PROJECT_NAME))\t$<"

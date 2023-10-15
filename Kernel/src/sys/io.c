@@ -1,4 +1,4 @@
-#include "io.h"
+#include <sys/io.h>
 
 void outb(uint16_t port, uint8_t val) {
     asm volatile(

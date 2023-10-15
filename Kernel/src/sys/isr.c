@@ -1,7 +1,7 @@
-#include "isr.h"
-#include "idt.h"
-#include "printf.h"
-#include "panic.h"
+#include <sys/isr.h>
+#include <sys/idt.h>
+#include <panic.h>
+#include <printf.h>
 
 void setup_isrs() {
     printf("isr: setting up ISRs\n");

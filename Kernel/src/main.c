@@ -1,18 +1,18 @@
-#include "bootproto.h"
-#include "printf.h"
+#include <bootproto.h>
+#include <printf.h>
 
-#include "drivers/fb/fb.h"
-#include "drivers/fb/efifb.h"
-#include "drivers/tty/fbtty.h"
-#include "drivers/tty/serialtty.h"
+#include <drivers/fb/fb.h>
+#include <drivers/fb/efifb.h>
+#include <drivers/tty/fbtty.h>
+#include <drivers/tty/serialtty.h>
 
-#include "mm/init.h"
-#include "mm/mm.h"
+#include <mm/init.h>
+#include <mm/mm.h>
 
-#include "idt.h"
-#include "isr.h"
-#include "libk.h"
-#include "panic.h"
+#include <sys/idt.h>
+#include <sys/isr.h>
+#include <libk.h>
+#include <panic.h>
 
 bootproto_handoff_t *g_handoff;
 

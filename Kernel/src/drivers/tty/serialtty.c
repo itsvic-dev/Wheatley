@@ -1,6 +1,6 @@
-#include "serialtty.h"
-#include "tty.h"
-#include "io.h"
+#include <drivers/tty/serialtty.h>
+#include <drivers/tty/tty.h>
+#include <sys/io.h>
 
 #define COM1_PORT 0x3f8
 

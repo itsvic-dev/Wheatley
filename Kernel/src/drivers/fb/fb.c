@@ -1,5 +1,5 @@
-#include "fb.h"
-#include "printf.h"
+#include <drivers/fb/fb.h>
+#include <printf.h>
 
 fb_driver_t *fb_drivers[256];
 int fb_drivers_count = 0;

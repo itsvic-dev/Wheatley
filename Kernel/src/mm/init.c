@@ -1,8 +1,8 @@
-#include "stdint.h"
-#include "init.h"
-#include "libk.h"
-#include "internal.h"
-#include "assert.h"
+#include <stdint.h>
+#include <mm/init.h>
+#include <mm/internal.h>
+#include <assert.h>
+#include <libk.h>
 
 uint32_t *_mm_pages = NULL;
 uint64_t _mm_page_count = 0;

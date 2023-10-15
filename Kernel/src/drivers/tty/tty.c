@@ -1,5 +1,5 @@
-#include "tty.h"
-#include "printf.h"
+#include <drivers/tty/tty.h>
+#include <printf.h>
 
 const tty_driver_t *tty_drivers[256];
 int tty_drivers_count = 0;

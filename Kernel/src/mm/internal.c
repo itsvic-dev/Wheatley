@@ -1,4 +1,4 @@
-#include "internal.h"
+#include <mm/internal.h>
 
 void _mm_add_alloc(bootproto_mmap_entry_t *entry) {
     mm_alloc_data_t *alloc = &_mm_allocs[_mm_alloc_count++];

@@ -1,6 +1,6 @@
-#include "efifb.h"
-#include "fb.h"
-#include "libk.h"
+#include <drivers/fb/efifb.h>
+#include <drivers/fb/fb.h>
+#include <libk.h>
 
 fb_info_t __efifb_info;
 

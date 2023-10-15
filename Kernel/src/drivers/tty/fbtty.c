@@ -1,7 +1,7 @@
-#include "fbtty.h"
-#include "tty.h"
-#include "../fb/fb.h"
-#include "printf.h"
+#include <drivers/tty/fbtty.h>
+#include <drivers/tty/tty.h>
+#include <drivers/fb/fb.h>
+#include <printf.h>
 
 extern char _binary_Tamsyn8x16r_psf_start;
 extern char _binary_Tamsyn8x16r_psf_end;

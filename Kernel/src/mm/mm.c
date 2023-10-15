@@ -1,6 +1,6 @@
-#include "mm.h"
-#include "internal.h"
-#include "panic.h"
+#include <mm/mm.h>
+#include <mm/internal.h>
+#include <panic.h>
 
 uint64_t _mm_find_page(uint64_t len) {
     for (int i = 0; i < _mm_page_count * 8; i++) {

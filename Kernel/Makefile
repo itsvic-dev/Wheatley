@@ -1,10 +1,11 @@
 PROJECT_NAME := Kernel
 TARGET_NAME := kernel.elf
-SRC := main.c idt.c isr.asm isr.c io.c libk.c panic.c printf.c \
+SRC := main.c libk.c panic.c printf.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \
 	mm/init.c mm/internal.c mm/mm.c \
+	sys/idt.c sys/isr.asm sys/isr.c sys/io.c \
 
 CFLAGS := -fstack-protector
 

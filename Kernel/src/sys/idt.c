@@ -1,7 +1,7 @@
-#include "idt.h"
-#include "printf.h"
-#include "libk.h"
-#include "assert.h"
+#include <sys/idt.h>
+#include <assert.h>
+#include <libk.h>
+#include <printf.h>
 
 idt_descriptor_t *idt_table;
 
