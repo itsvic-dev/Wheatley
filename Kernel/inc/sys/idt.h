@@ -13,8 +13,12 @@ typedef struct {
    uint32_t zero;            // reserved
 } __attribute__((__packed__)) idt_descriptor_t;
 
-void setup_idt(void);
+typedef struct {
+    uint16_t limit;
+    uint64_t addr;
+} __attribute__((__packed__)) idt_ptr_t;
 
+void idt_reload(void);
 void idt_set_handler(uint8_t vector, uint8_t ist, void *isr);
 
 #endif // __KERNEL_IDT_H

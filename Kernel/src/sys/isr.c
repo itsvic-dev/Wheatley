@@ -3,8 +3,8 @@
 #include <panic.h>
 #include <printf.h>
 
-void setup_isrs() {
-    printf("isr: setting up ISRs\n");
+void isr_write(void) {
+    printf("isr: setting ISRs\n");
     
     idt_set_handler(0, 0, isr0);
     idt_set_handler(1, 1, isr1);
@@ -262,6 +262,8 @@ void setup_isrs() {
     idt_set_handler(253, 0, isr253);
     idt_set_handler(254, 0, isr254);
     idt_set_handler(255, 0, isr255);
+
+    idt_reload();
 }
 
 

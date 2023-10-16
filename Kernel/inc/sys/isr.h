@@ -60,7 +60,7 @@ typedef struct {
 } registers_t;
 
 typedef void (*event_handler_t)(registers_t *);
-void setup_isrs();
+void isr_write(void);
 extern void isr_handle(registers_t *r);
 void isr_register_handler(int n, void *handler);
 

@@ -10,6 +10,7 @@
 #include <mm/mm.h>
 
 #include <sys/cpuid.h>
+#include <sys/gdt.h>
 #include <sys/idt.h>
 #include <sys/isr.h>
 #include <libk.h>
@@ -28,8 +29,8 @@ void kernel_main(bootproto_handoff_t *handoff) {
   // init MM
   mm_init();
 
-  setup_idt();
-  setup_isrs();
+  gdt_write();
+  isr_write();
 
   cpuid_data_t cpuid_data = cpuid(0);
   get_cpuid_string(cpu_oem_id, &cpuid_data);
