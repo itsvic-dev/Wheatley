@@ -3,7 +3,6 @@
 
 #include "stdint.h"
 
-void *mm_alloc_page(size_t pages);
 void *kmalloc(uint64_t len);
 void kfree(void *buf);
 void *krealloc(void *buf, uint64_t newLen);

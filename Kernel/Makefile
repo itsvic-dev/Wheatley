@@ -13,7 +13,7 @@ SRC := main.c libk.c panic.c printf.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \
-	mm/init.c mm/internal.c mm/mm.c mm/vmm.c \
+	mm/init.c mm/internal.c mm/mm.c \
 	sys/cpuid.c sys/gdt.asm sys/gdt.c \
 	sys/idt.c sys/isr.asm sys/isr.c sys/io.c \
 	$(addprefix ../../ThirdParty/lai/,$(LAI_SRC)) \
