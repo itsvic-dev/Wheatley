@@ -16,6 +16,9 @@
 #include <libk.h>
 #include <panic.h>
 
+#include <lai/core.h>
+#include <lai/helpers/sci.h>
+
 bootproto_handoff_t *g_handoff;
 
 void kernel_main(bootproto_handoff_t *handoff) {
@@ -39,7 +42,10 @@ void kernel_main(bootproto_handoff_t *handoff) {
   char rsdpOemID[7];
   memcpy(rsdpOemID, g_handoff->rsdp.oemID, 6);
   rsdpOemID[6] = 0;
-  printf("RSDP OEMID: %s\n", rsdpOemID);
+  printf("RSDP OEMID: %s (rev %d)\n", rsdpOemID, g_handoff->rsdp.revision);
+  lai_set_acpi_revision(g_handoff->rsdp.revision);
+  lai_create_namespace();
+  lai_enable_acpi(1);
   
   panic("we're done for now", 0);
 }

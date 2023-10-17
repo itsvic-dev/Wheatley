@@ -18,7 +18,7 @@ SRC := main.c libk.c panic.c printf.c \
 	sys/idt.c sys/isr.asm sys/isr.c sys/io.c \
 	$(addprefix ../../ThirdParty/lai/,$(LAI_SRC)) \
 
-CFLAGS := -fstack-protector -I$(PROJECT_ROOT)/ThirdParty/lai/include
+CFLAGS := -fstack-protector -I$(PROJECT_ROOT)/ThirdParty/lai/include -Wno-ignored-attributes
 
 PRECOMPILED_OBJ := kernel.ld $(OUTPUT_DIRECTORY)/$(PROJECT_NAME)/Tamsyn8x16r.o
 
