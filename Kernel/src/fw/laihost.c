@@ -6,6 +6,7 @@
 #include <fw/acpi.h>
 #include <sys/io.h>
 #include <sys/pci.h>
+#include <drivers/timer/hpet.h>
 
 void *laihost_malloc(size_t size) {
     void *ret = kmalloc(size);
@@ -98,4 +99,14 @@ void laihost_unmap(void *ptr, size_t count) {
     // stub
     (void)ptr;
     (void)count;
+}
+
+// sleep for N ms
+void laihost_sleep(uint64_t ms) {
+    uint64_t ns = ms * 10000; // to 100ns
+    hpet_sleep(ns);
+}
+
+uint64_t laihost_timer(void) {
+    return hpet_time();
 }

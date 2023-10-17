@@ -316,4 +316,6 @@ void isr_handle(registers_t *r) {
         printf("isr: Unhandled exception: %s\n", isr_exceptions[r->isrNumber]);
         panic("Unhandled exception", r);
     }
+
+    printf("isr: Unhandled ISR: %d\n", r->isrNumber);
 }

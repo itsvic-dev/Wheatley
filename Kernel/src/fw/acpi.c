@@ -7,6 +7,7 @@
 #include <lai/helpers/sci.h>
 #include <assert.h>
 #include <sys/pci.h>
+#include <drivers/timer/hpet.h>
 
 bool has_xsdt = false;
 acpi_xsdt_t *xsdt = NULL;
@@ -29,6 +30,7 @@ void acpi_init(void) {
     }
 
     pci_init();
+    hpet_init();
 
     lai_set_acpi_revision(revision);
     lai_create_namespace();
