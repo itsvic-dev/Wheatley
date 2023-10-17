@@ -6,6 +6,7 @@
 #include <lai/core.h>
 #include <lai/helpers/sci.h>
 #include <assert.h>
+#include <sys/pci.h>
 
 bool has_xsdt = false;
 acpi_xsdt_t *xsdt = NULL;
@@ -26,6 +27,8 @@ void acpi_init(void) {
     } else {
         panic("support for RSDT isn't here yet", 0);
     }
+
+    pci_init();
 
     lai_set_acpi_revision(revision);
     lai_create_namespace();
@@ -52,6 +55,7 @@ acpi_header_t *acpi_find_table(char *sig, size_t index) {
     }
 
     size_t entries = (xsdt->header.length - sizeof(acpi_header_t)) / 8;
+    int count = 0;
 
     for (size_t i = 0; i < entries; i++) {
         acpi_header_t *ptr = (acpi_header_t *)(xsdt->tables[i]);
@@ -59,7 +63,7 @@ acpi_header_t *acpi_find_table(char *sig, size_t index) {
         if (
             !memcmp(ptr->signature, sig, 4)
             && acpi_checksum(ptr)
-            && i == index
+            && count++ == index
         ) {
             return ptr;
         }
