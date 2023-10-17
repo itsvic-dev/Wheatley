@@ -8,6 +8,7 @@
 
 #include <mm/init.h>
 #include <mm/mm.h>
+#include <mm/vmm.h>
 
 #include <sys/cpuid.h>
 #include <sys/gdt.h>
@@ -33,6 +34,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   // init MM
   mm_init();
+  vmm_init();
 
   cpuid_data_t cpuid_data = cpuid(0);
   get_cpuid_string(cpu_oem_id, &cpuid_data);
