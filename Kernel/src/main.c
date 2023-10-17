@@ -18,6 +18,12 @@
 
 bootproto_handoff_t *g_handoff;
 
+void jump_to_ring3(void (*func)(void));
+
+void test_ring3(void) {
+  asm("int3"); // privileged instruction should cause a GPF
+}
+
 void kernel_main(bootproto_handoff_t *handoff) {
   g_handoff = handoff;
 
@@ -35,6 +41,9 @@ void kernel_main(bootproto_handoff_t *handoff) {
   cpuid_data_t cpuid_data = cpuid(0);
   get_cpuid_string(cpu_oem_id, &cpuid_data);
   printf("CPU manufacturer: %s\n", cpu_oem_id);
+
+  printf("ring 3?\n");
+  jump_to_ring3(&test_ring3);
   
   panic("we're done for now", 0);
 }
