@@ -14,5 +14,5 @@ JumpToKernel:
     xor rbp, rbp
 
     ; call main
-    mov rdi, [handoff]
-    call [__kernelEntry]
+    mov rdi, [rel handoff]
+    call [rel __kernelEntry]

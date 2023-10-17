@@ -2,6 +2,8 @@
 #include <mm/internal.h>
 #include <panic.h>
 
+#include <libk.h>
+
 uint64_t _mm_find_page(uint64_t len) {
     for (int i = 0; i < _mm_page_count * 8; i++) {
         if (!_mm_get_page_bit(i)) {
@@ -86,4 +88,26 @@ void kfree(void *buf) {
     for (int i = 0; i < alloc->pageCount; i++) {
         _mm_clear_page_bit(page + i);
     }
+}
+
+void *krealloc(void *buf, uint64_t newLen) {
+    // find the allocation of buf
+    uint64_t page = (uint64_t)buf / 4096;
+    mm_alloc_data_t *alloc = _mm_find_alloc(page);
+
+    // if none, bail
+    if (alloc == NULL) {
+        panic("kfree: failed to find alloc", 0);
+    };
+
+    uint64_t pagesNeeded = (newLen + 4095) / 4096;
+    if (pagesNeeded <= alloc->pageCount) {
+        // if theres enough pages to fit newLen in the current alloc, just return the same buf
+        return buf;
+    }
+    // otherwise, create new alloc, memcpy old data, then free old alloc
+    void *newBuf = kmalloc(newLen);
+    memcpy(newBuf, buf, alloc->pageCount * 4096);
+    kfree(buf);
+    return newBuf;
 }
