@@ -3,4 +3,4 @@
 	url = https://github.com/yoppeh/efi.git
 [submodule "ThirdParty/lai"]
 	path = ThirdParty/lai
-	url = git@github.com:managarm/lai.git
+	url = https://github.com/omametech/lai.git
