@@ -1,7 +1,9 @@
 #include "stdint.h"
 #include "libk.h"
+#include "printf.h"
 
 void *memset(void *dest, int ch, size_t count) {
+    // printf("memset(%#llx, %d, %lld)\n", dest, ch, count);
     uint8_t *ptr = dest;
     uint8_t val = ch;
     while (count--) {

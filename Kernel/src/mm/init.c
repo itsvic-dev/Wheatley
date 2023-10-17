@@ -43,7 +43,7 @@ void mm_init(void) {
     MM_PRINT("_mm_allocs=%#llx", _mm_allocs);
 
     MM_PRINT("setting bits and allocs");
-    memset(_mm_pages, 1, _mm_page_count);
+    memset(_mm_pages, 0xFF, _mm_page_count);
 
     for (int i = 0; i < g_handoff->mmap_entries_length; i++) {
         bootproto_mmap_entry_t *entry = &g_handoff->mmap_entry[i];
@@ -59,8 +59,10 @@ void mm_init(void) {
         }
     }
 
-    // mark page 0 as used to avoid confusion
-    _mm_set_page_bit(0);
+    // mark lower 16 MB of pages as used because god fuck
+    for (uint64_t i = 0; i < 16 * 1024 * 1024 / 4096; i++) {
+        _mm_set_page_bit(i);
+    }
 
     // mark allocation tables as used
     MM_PRINT("marking allocation tables as used");
