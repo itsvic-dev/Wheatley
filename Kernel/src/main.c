@@ -35,6 +35,11 @@ void kernel_main(bootproto_handoff_t *handoff) {
   cpuid_data_t cpuid_data = cpuid(0);
   get_cpuid_string(cpu_oem_id, &cpuid_data);
   printf("CPU manufacturer: %s\n", cpu_oem_id);
+
+  char rsdpOemID[7];
+  memcpy(rsdpOemID, g_handoff->rsdp.oemID, 6);
+  rsdpOemID[6] = 0;
+  printf("RSDP OEMID: %s\n", rsdpOemID);
   
   panic("we're done for now", 0);
 }

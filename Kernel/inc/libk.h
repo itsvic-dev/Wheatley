@@ -7,7 +7,9 @@
 extern bootproto_handoff_t *g_handoff;
 
 void *memset(void *dest, int ch, uint64_t count);
-void *memcpy(void *dest, const void *src, uint64_t n);
+void *memcpy(void *dest, const void *src, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+
 char *strcpy(char *dest, const char *source);
 
 #endif

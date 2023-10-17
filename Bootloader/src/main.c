@@ -45,6 +45,34 @@ EFI_STATUS GetRootfs(
   return BS->OpenProtocol(device, &guid, (void **)rootfs, Image, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 }
 
+int my_memcmp(const void *s1, const void *s2, int len)
+{
+    unsigned char *p = (unsigned char *)s1;
+    unsigned char *q = (unsigned char *)s2;
+    int charCompareStatus = 0;
+    //If both pointer pointing same memory block
+    if (s1 == s2)
+    {
+        return charCompareStatus;
+    }
+    while (len > 0)
+    {
+        if (*p != *q)
+        {  //compare the mismatching character
+            charCompareStatus = (*p >*q)?1:-1;
+            break;
+        }
+        len--;
+        p++;
+        q++;
+    }
+    return charCompareStatus;
+}
+
+bool guidMatches(EFI_GUID guid1, EFI_GUID guid2) {
+  return my_memcmp(&guid1, &guid2, sizeof(EFI_GUID)) == 0;
+}
+
 void Panic(char *msg) {
   printf("panic: %s\r\n", msg);
   for (;;) __asm__("int3");
@@ -166,6 +194,18 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     STATUS_PANIC("failed to read segment data from file into memory");
   }
 
+  // search through EFI config table to find RSDP
+  rsdp_t *rsdp = NULL;
+  EFI_GUID rdspGuid = EFI_ACPI_TABLE_GUID;
+  for (int i = 0; i < ST->NumberOfTableEntries; i++) {
+    EFI_CONFIGURATION_TABLE *ctEntry = &ST->ConfigurationTable[i];
+    if (guidMatches(ctEntry->VendorGuid, rdspGuid)) {
+      printf("found RSDP\r\n");
+      rsdp = ctEntry->VendorTable;
+    }
+  }
+  ASSERT(rsdp != NULL);
+
   // define stack
   void *stack = NULL;
   status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, 8, (uint64_t *)&stack);
@@ -184,6 +224,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   // read ELF symbol table and dump it into handoff
   elf_load_symbols(&elfHeader, kernel, handoff);
+
+  handoff->rsdp = *rsdp;
 
   // get GOP for handoff
   EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;

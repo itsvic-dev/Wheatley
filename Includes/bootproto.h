@@ -22,11 +22,21 @@ typedef struct {
 } __attribute__((__packed__)) bootproto_symbol_t;
 
 typedef struct {
+ char signature[8];
+ uint8_t checksum;
+ char oemID[6];
+ uint8_t revision;
+ uint32_t rsdtAddress; // deprecated in ACPI 2.0
+} __attribute__((packed)) rsdp_t;
+
+typedef struct {
   bootproto_mmap_entry_t mmap_entry[128];
   uint8_t mmap_entries_length;
 
   bootproto_symbol_t symbols[256];
   int symbols_length;
+
+  rsdp_t rsdp;
 
   // framebuffer data
   uint32_t *fb_buffer;
