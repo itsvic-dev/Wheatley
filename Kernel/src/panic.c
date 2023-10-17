@@ -62,7 +62,9 @@ void panic(const char *reason, registers_t *r) {
             "  R10: 0x%016llx      R11: 0x%016llx\n"
             "  R12: 0x%016llx      R13: 0x%016llx\n"
             "  R14: 0x%016llx      R15: 0x%016llx\n"
-            "   CS: 0x%016llx       SS: 0x%016llx\n",
+            "   CS: 0x%016llx       SS: 0x%016llx\n"
+            "  CR0: 0x%016llx      CR2: 0x%016llx\n"
+            "  CR3: 0x%016llx      CR4: 0x%016llx\n",
             r->errorCode,
             r->rip, r->rflags,
             r->rax, r->rbx,
@@ -73,7 +75,9 @@ void panic(const char *reason, registers_t *r) {
             r->r10, r->r11,
             r->r12, r->r13,
             r->r14, r->r15,
-            r->cs, r->ss
+            r->cs, r->ss,
+            r->cr0, r->cr2,
+            r->cr3, r->cr4
         );
     }
 

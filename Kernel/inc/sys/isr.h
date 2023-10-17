@@ -31,6 +31,10 @@ DEFISR;
 
 typedef struct {
     // registers from isr_common_format
+    uint64_t cr4;
+    uint64_t cr3;
+    uint64_t cr2;
+    uint64_t cr0;
     uint64_t r15;
     uint64_t r14;
     uint64_t r13;
