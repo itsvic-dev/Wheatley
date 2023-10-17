@@ -156,10 +156,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     }
     printf("mapped %d pages to virtual memory @ %#llx\r\n", pageCount, phdr.vaddr);
     
-    // setmem can go to hell
-    for (uint64_t i = 0; i < phdr.memsz; i++) {
-      *(uint8_t *)(physPage + i) = 0;
-    }
+    BS->SetMem(physPage, phdr.memsz, 0);
     
     status = kernel->SetPosition(kernel, phdr.offset);
     STATUS_PANIC("failed to move file pos to phdr offset");
