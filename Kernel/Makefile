@@ -9,7 +9,7 @@ LAI_SRC := core/error.c core/eval.c core/exec-operand.c \
 	drivers/ec.c drivers/timer.c \
 
 SRC := main.c libk.c panic.c printf.c \
-	acpi/laihost.c \
+	fw/acpi.c fw/laihost.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \

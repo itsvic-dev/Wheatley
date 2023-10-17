@@ -27,7 +27,12 @@ typedef struct {
  char oemID[6];
  uint8_t revision;
  uint32_t rsdtAddress; // deprecated in ACPI 2.0
-} __attribute__((packed)) rsdp_t;
+
+ uint32_t length;
+ uint64_t xsdtAddress;
+ uint8_t extendedChecksum;
+ uint8_t reserved[3];
+} __attribute__((packed)) xsdp_t;
 
 typedef struct {
   bootproto_mmap_entry_t mmap_entry[128];
@@ -36,7 +41,7 @@ typedef struct {
   bootproto_symbol_t symbols[256];
   int symbols_length;
 
-  rsdp_t rsdp;
+  xsdp_t rsdp;
 
   // framebuffer data
   uint32_t *fb_buffer;

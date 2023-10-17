@@ -195,7 +195,7 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   }
 
   // search through EFI config table to find RSDP
-  rsdp_t *rsdp = NULL;
+  xsdp_t *rsdp = NULL;
   EFI_GUID rdspGuid = EFI_ACPI_TABLE_GUID;
   for (int i = 0; i < ST->NumberOfTableEntries; i++) {
     EFI_CONFIGURATION_TABLE *ctEntry = &ST->ConfigurationTable[i];
@@ -225,7 +225,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   // read ELF symbol table and dump it into handoff
   elf_load_symbols(&elfHeader, kernel, handoff);
 
-  handoff->rsdp = *rsdp;
+  // handoff->rsdp = *rsdp;
+  BS->CopyMem(&handoff->rsdp, rsdp, rsdp->revision == 0 ? 20 : 36);
 
   // get GOP for handoff
   EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;

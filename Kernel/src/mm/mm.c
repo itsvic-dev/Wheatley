@@ -91,13 +91,16 @@ void kfree(void *buf) {
 }
 
 void *krealloc(void *buf, uint64_t newLen) {
+    // if buf is NULL, behave like malloc
+    if (buf == 0) return kmalloc(newLen);
+
     // find the allocation of buf
     uint64_t page = (uint64_t)buf / 4096;
     mm_alloc_data_t *alloc = _mm_find_alloc(page);
 
     // if none, bail
     if (alloc == NULL) {
-        panic("kfree: failed to find alloc", 0);
+        panic("krealloc: failed to find alloc", 0);
     };
 
     uint64_t pagesNeeded = (newLen + 4095) / 4096;
