@@ -1,6 +1,7 @@
 #include <drivers/fb/efifb.h>
 #include <drivers/fb/fb.h>
 #include <libk.h>
+#include <assert.h>
 
 fb_info_t __efifb_info;
 
@@ -12,12 +13,23 @@ void efifb_setpixel(int x, int y, uint32_t pixel) {
     g_handoff->fb_buffer[y * g_handoff->fb_pixelsPerScanLine + x] = pixel;
 }
 
+void efifb_readpixels(uint64_t *buf, size_t offset, size_t count) {
+    memcpy(buf, g_handoff->fb_buffer + offset, count);
+}
+
+void efifb_memcpy(uint64_t *buf, size_t offset, size_t count) {
+    memcpy(g_handoff->fb_buffer + offset, buf, count);
+}
+
 fb_driver_t efifb_driver;
 
 void efifb_module_init() {
     efifb_driver.get_info = &efifb_get_info;
     efifb_driver.setpixel = &efifb_setpixel;
+    efifb_driver.readpixels = &efifb_readpixels;
+    efifb_driver.memcpy = &efifb_memcpy;
 
+    assert(g_handoff->fb_pixelsPerScanLine == g_handoff->fb_width);
     __efifb_info.width = g_handoff->fb_width;
     __efifb_info.height = g_handoff->fb_height;
     for (int idx = 0; idx < g_handoff->fb_pixelsPerScanLine * g_handoff->fb_width; idx++)
