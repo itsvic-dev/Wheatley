@@ -26,13 +26,15 @@ void kernel_main(bootproto_handoff_t *handoff) {
   // init early modules such as serialtty, efifb, fbtty
   serialtty_module_init();
   efifb_module_init();
-  fbtty_module_init();
 
   gdt_write();
   isr_write();
 
   // init MM
   mm_init();
+
+  // fbtty depends on MM
+  fbtty_module_init();
 
   cpuid_data_t cpuid_data = cpuid(0);
   get_cpuid_string(cpu_oem_id, &cpuid_data);

@@ -17,7 +17,7 @@ void pci_init(void) {
 
 static void *pci_get_mcfg_addr(pci_device_path_t device, uint16_t offset) {
     // search through MCFG table
-    // fixme: this should be cached
+    // FIXME: this should be cached
     mcfg_addr_t *entry = NULL;
     size_t entries = (g_mcfg->header.length - sizeof(acpi_header_t) - 8) / 16;
     for (size_t i = 0; i < entries; i++) {

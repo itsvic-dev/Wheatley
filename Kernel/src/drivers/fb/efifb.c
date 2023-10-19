@@ -13,11 +13,11 @@ void efifb_setpixel(int x, int y, uint32_t pixel) {
     g_handoff->fb_buffer[y * g_handoff->fb_pixelsPerScanLine + x] = pixel;
 }
 
-void efifb_readpixels(uint64_t *buf, size_t offset, size_t count) {
+void efifb_readpixels(uint32_t *buf, size_t offset, size_t count) {
     memcpy(buf, g_handoff->fb_buffer + offset, count);
 }
 
-void efifb_memcpy(uint64_t *buf, size_t offset, size_t count) {
+void efifb_memcpy(uint32_t *buf, size_t offset, size_t count) {
     memcpy(g_handoff->fb_buffer + offset, buf, count);
 }
 

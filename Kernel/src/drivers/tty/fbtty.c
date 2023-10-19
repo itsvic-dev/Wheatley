@@ -9,8 +9,7 @@ extern char _binary_Tamsyn8x16r_psf_end;
 
 psf_font_t *_fbtty_font;
 
-// FIXME: support for multiple FBs.
-// will need kmalloc
+// TODO: support for multiple FBs
 fb_driver_t *_fbtty_fb;
 int _fbtty_cx = 0;
 int _fbtty_cy = 0;
@@ -18,8 +17,7 @@ int _fbtty_cy = 0;
 int _fbtty_fbw = 0;
 int _fbtty_fbh = 0;
 
-// FIXME: this should be dynamically allocated
-uint64_t _fbtty_scrollbackBuf[1920 * 1080];
+uint32_t *_fbtty_scrollbackBuf;
 
 static inline uint8_t shifted(int i, int j) {
     return (i >> (7 - j)) & 1;
@@ -56,7 +54,7 @@ check_space:
     }
 
     if (_fbtty_cy * _fbtty_font->height >= _fbtty_fbh) {
-        // FIXME: add double-buffering maybe
+        // TODO: add double-buffering maybe
         uint64_t offset = _fbtty_fbw * _fbtty_font->height;
         uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 8;
         _fbtty_fb->readpixels(_fbtty_scrollbackBuf, offset, count);
@@ -93,7 +91,7 @@ void fbtty_module_init() {
     fbtty_driver.putchar = &fbtty_putchar;
     _fbtty_fbw = _fbtty_fb->get_info()->width;
     _fbtty_fbh = _fbtty_fb->get_info()->height;
-    // _fbtty_scrollbackBuf = kmalloc(_fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 8);
+    _fbtty_scrollbackBuf = kmalloc(_fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4);
 
     tty_register_driver(&fbtty_driver);
 }

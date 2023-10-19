@@ -31,6 +31,6 @@ void gdt_write(void) {
     gdt_ptr.limit = sizeof(gdt_table) - 1;
     gdt_ptr.addr = (uint64_t)&gdt_table;
 
-    // fixme: install TSS
+    // TODO: install TSS
     gdt_reload();
 }
