@@ -6,6 +6,9 @@
 #include <drivers/tty/fbtty.h>
 #include <drivers/tty/serialtty.h>
 
+#include <fw/acpi.h>
+#include <fw/apic.h>
+
 #include <mm/init.h>
 #include <mm/mm.h>
 
@@ -13,10 +16,9 @@
 #include <sys/gdt.h>
 #include <sys/idt.h>
 #include <sys/isr.h>
+
 #include <libk.h>
 #include <panic.h>
-
-#include <fw/acpi.h>
 
 bootproto_handoff_t *g_handoff;
 
@@ -41,6 +43,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
   printf("CPU manufacturer: %s\n", cpu_oem_id);
 
   acpi_init();
+  apic_init();
   
   panic("we're done for now", 0);
 }
