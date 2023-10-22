@@ -116,7 +116,13 @@ static void lapic_set_nmi(uint8_t vec, uint8_t processor, uint16_t flags, uint8_
     if (flags & 8)
         nmi |= 1 << 15;
 
-    lapic_write(lint == 0 ? 0x350 : 0x360, nmi);
+    if (lint == 0) {
+        lapic_write(0x350, nmi);
+    } else if (lint == 1) {
+        lapic_write(0x360, nmi);
+    } else {
+        printf("wtf??? lint=%d\n", lint);
+    }
 }
 
 void apic_init() {
@@ -203,9 +209,13 @@ void apic_init() {
 
 uint32_t lapic_read(size_t reg) {
     assert(lapic_addr != NULL);
-    return mmind((void *)lapic_addr + reg);
+    uint32_t retVal = mmind((void *)lapic_addr + reg);
+    printf("lapic_read: %#llx=%#x\n", (void *)lapic_addr + reg, retVal);
+    return retVal;
+    // return mmind((void *)lapic_addr + reg);
 }
 void lapic_write(size_t reg, uint32_t value) {
     assert(lapic_addr != NULL);
+    printf("lapic_write: %#llx=%#x\n", (void *)lapic_addr + reg, value);
     mmoutd((void *)lapic_addr + reg, value);
 }
