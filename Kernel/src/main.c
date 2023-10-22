@@ -3,6 +3,7 @@
 
 #include <drivers/fb/fb.h>
 #include <drivers/fb/efifb.h>
+#include <drivers/timer/apic.h>
 #include <drivers/tty/fbtty.h>
 #include <drivers/tty/serialtty.h>
 
@@ -44,6 +45,9 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   acpi_init();
   apic_init();
+
+  // test
+  timer_sched_oneshot(48, 200000);
   
-  panic("we're done for now", 0);
+  for(;;) asm("hlt");
 }

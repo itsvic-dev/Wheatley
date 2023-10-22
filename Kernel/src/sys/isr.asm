@@ -16,25 +16,9 @@ push r12
 push r13
 push r14
 push r15
-mov rax, cr0
-push rax
-mov rax, cr2
-push rax
-mov rax, cr3
-push rax
-mov rax, cr4
-push rax
 %endmacro
 
 %macro popall 0
-pop rax
-mov cr4, rax
-pop rax
-mov cr3, rax
-pop rax
-mov cr2, rax
-pop rax
-mov cr0, rax
 pop r15
 pop r14
 pop r13
@@ -64,7 +48,7 @@ isr_common_format:
     ; pop all the registers
     popall
     ; consume the ISR stack frame
-    add rsp, 24
+    add rsp, 16
     ; and we're done
     iretq
 

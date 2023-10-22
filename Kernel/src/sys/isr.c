@@ -54,7 +54,7 @@ void isr_write(void) {
     idt_set_handler(45, 0, isr45);
     idt_set_handler(46, 0, isr46);
     idt_set_handler(47, 0, isr47);
-    idt_set_handler(48, 1, isr48);
+    idt_set_handler(48, 0, isr48);
     idt_set_handler(49, 0, isr49);
     idt_set_handler(50, 0, isr50);
     idt_set_handler(51, 0, isr51);
