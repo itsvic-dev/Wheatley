@@ -28,6 +28,29 @@ typedef struct {
 
 typedef struct {
     madt_record_header_t header;
+    uint8_t ioapicID;
+    uint8_t reserved;
+    uint32_t address;
+    uint32_t gsiBase;
+} __attribute__((__packed__)) madt_ioapic_t;
+
+typedef struct {
+    madt_record_header_t header;
+    uint8_t busSource;
+    uint8_t irqSource;
+    uint32_t gsi;
+    uint16_t flags;
+} __attribute__((__packed__)) madt_ioapic_iso_t;
+
+typedef struct {
+    madt_record_header_t header;
+    uint8_t processor;
+    uint16_t flags;
+    uint8_t lint;
+} __attribute__((__packed__)) madt_lapic_nmi_t;
+
+typedef struct {
+    madt_record_header_t header;
     uint16_t reserved;
     uint64_t address;
 } __attribute__((__packed__)) madt_lapic_addr_override_t;
