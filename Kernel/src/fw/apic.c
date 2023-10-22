@@ -6,6 +6,7 @@
 #include <sys/io.h>
 #include <sys/mmio.h>
 #include <sys/msr.h>
+#include <sys/cpuid.h>
 #include <drivers/timer/apic.h>
 
 madt_t *madt;
@@ -19,6 +20,8 @@ uint8_t ioapics_length = 0;
 
 madt_lapic_nmi_t *nmis[256];
 uint8_t nmis_length = 0;
+
+bool x2apic = false;
 
 static uint32_t ioapic_read(uint64_t ioapic_address, size_t reg) {
 	mmoutd((void *)ioapic_address, reg & 0xFF);
@@ -188,14 +191,22 @@ void apic_init() {
 
     uint64_t apic_msr = rdmsr(0x1B);
     apic_msr |= 1 << 11;
-    // FIXME: x2APIC
+    cpuid_data_t flags = cpuid(1);
+    if (flags.rcx & (1 << 21)) {
+        printf("apic: x2APIC available, using that\n");
+        x2apic = true;
+        // set x2APIC flag
+        apic_msr |= 1 << 10;
+    }
     wrmsr(0x1B, apic_msr);
 
     // init LAPIC
     lapic_write(0x80, 0);
     lapic_write(0xF0, lapic_read(0xF0) | 0x100);
-    lapic_write(0xE0, 0xF0000000);
-	lapic_write(0xD0, lapic_read(0x20));
+    if (!x2apic) {
+        lapic_write(0xE0, 0xF0000000);
+        lapic_write(0xD0, lapic_read(0x20));
+    }
 
     // set NMIs
     for (int i = 0; i < nmis_length; i++) {
@@ -207,15 +218,28 @@ void apic_init() {
     ioapic_redirect_irq(0, 48);
 }
 
-uint32_t lapic_read(size_t reg) {
-    assert(lapic_addr != NULL);
-    uint32_t retVal = mmind((void *)lapic_addr + reg);
-    printf("lapic_read: %#llx=%#x\n", (void *)lapic_addr + reg, retVal);
-    return retVal;
-    // return mmind((void *)lapic_addr + reg);
+static inline uint32_t reg_to_x2apic(uint32_t reg) {
+    uint32_t x2apic_reg = 0;
+    // MSR 831H is reserved. APIC register 310H is accessible at x2APIC MSR 830H
+    if (reg == 0x310) {
+        x2apic_reg = 0x30;
+    } else {
+        x2apic_reg = reg >> 4;
+    }
+
+    return x2apic_reg + 0x800;
 }
-void lapic_write(size_t reg, uint32_t value) {
+
+uint32_t lapic_read(size_t reg) {
+    if (x2apic) return rdmsr(reg_to_x2apic(reg));
+
     assert(lapic_addr != NULL);
-    printf("lapic_write: %#llx=%#x\n", (void *)lapic_addr + reg, value);
+    return mmind((void *)lapic_addr + reg);
+}
+
+void lapic_write(size_t reg, uint32_t value) {
+    if (x2apic) return wrmsr(reg_to_x2apic(reg), value);
+
+    assert(lapic_addr != NULL);
     mmoutd((void *)lapic_addr + reg, value);
 }
