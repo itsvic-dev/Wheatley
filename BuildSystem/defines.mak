@@ -4,7 +4,7 @@ AS := nasm
 GLOBAL_CFLAGS := -g -Wall -Werror \
 	-I$(PROJECT_ROOT)/Includes \
 	-ffreestanding -mno-red-zone \
-	-nostdlib -MD
+	-nostdlib -MD -masm=intel
 
 GLOBAL_LDFLAGS := -fuse-ld=lld -nostdlib
 

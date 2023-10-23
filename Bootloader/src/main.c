@@ -75,7 +75,7 @@ bool guidMatches(EFI_GUID guid1, EFI_GUID guid2) {
 
 void Panic(char *msg) {
   printf("panic: %s\r\n", msg);
-  for (;;) __asm__("int3");
+  for (;;) asm("int3");
 }
 
 uint64_t __kernelEntry;

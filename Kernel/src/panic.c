@@ -23,7 +23,7 @@ bootproto_symbol_t *find_symbol(uint64_t rip) {
 
 void panic_backtrace(uint64_t maxFrames) {
     stackframe_t *frame;
-    asm("mov %%rbp,%0" : "=q"(frame) ::); // load RBP into the stack frame ptr
+    asm("mov %0, rbp" : "=q"(frame) ::); // load RBP into the stack frame ptr
 
     for (uint64_t i = 0; frame && i < maxFrames; ++i) {
         bootproto_symbol_t *symbol = find_symbol(frame->rip);

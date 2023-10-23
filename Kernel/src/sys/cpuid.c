@@ -6,15 +6,15 @@ char cpu_oem_id[13];
 cpuid_data_t cpuid(uint64_t leaf) {
     cpuid_data_t data;
     asm volatile(
-        "mov %[leaf], %%rax;" // move leaf to RAX
+        "mov rax, %[leaf]\n" // move leaf to RAX
         "cpuid;" // call cpuid
-        "mov %%rax, %0;" // move registers to cpuid_data_t
-        "mov %%rbx, %1;"
-        "mov %%rcx, %2;"
-        "mov %%rdx, %3;"
+        "mov %0, rax\n" // move registers to cpuid_data_t
+        "mov %1, rbx\n"
+        "mov %2, rcx\n"
+        "mov %3, rdx\n"
         : "=r"(data.rax), "=r"(data.rbx), "=r"(data.rcx), "=r"(data.rdx)
         : [leaf] "r"(leaf)
-        : "%rax", "%rbx", "%rcx", "%rdx", "memory"
+        : "rax", "rbx", "rcx", "rdx", "memory"
     );
     return data;
 }
