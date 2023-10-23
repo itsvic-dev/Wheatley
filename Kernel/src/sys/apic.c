@@ -1,4 +1,5 @@
-#include <fw/apic.h>
+#include <sys/apic.h>
+#include <fw/madt.h>
 #include <fw/acpi.h>
 #include <panic.h>
 #include <printf.h>
@@ -8,18 +9,6 @@
 #include <sys/msr.h>
 #include <sys/cpuid.h>
 #include <drivers/timer/apic.h>
-
-madt_t *madt;
-uint32_t *lapic_addr = NULL;
-
-madt_ioapic_iso_t *isos[256];
-uint8_t isos_length = 0;
-
-madt_ioapic_t *ioapics[256];
-uint8_t ioapics_length = 0;
-
-madt_lapic_nmi_t *nmis[256];
-uint8_t nmis_length = 0;
 
 bool x2apic = false;
 
@@ -103,10 +92,9 @@ void ioapic_redirect_irq(uint32_t irq, uint8_t vect) {
     ioapic_redirect_gsi(irq, vect, 0);
 }
 
-static void lapic_set_nmi(uint8_t vec, uint8_t processor, uint16_t flags, uint8_t lint) {
+static void lapic_set_nmi(uint8_t vec, uint8_t currentProcessor, uint8_t processor, uint16_t flags, uint8_t lint) {
     assert(lint < 2);
-    // FIXME: in SMP we need to check if the LAPIC's current
-    // processor ID matches the NMI processor idt
+    if (processor != 0xFF && currentProcessor != processor) return;
 
     // set to raise in vector "vec" and set NMI flag
     uint32_t nmi = 0x400 | vec;
@@ -128,70 +116,12 @@ static void lapic_set_nmi(uint8_t vec, uint8_t processor, uint16_t flags, uint8_
     }
 }
 
-void apic_init() {
-    madt = (madt_t *)acpi_find_table("APIC", 0);
-    if (!madt)
-        panic("apic: no MADT found", 0);
-    
-    printf("apic: MADT @ %#llx, %#x bytes long\n", madt, madt->header.length);
-
-    if (madt->flags & 1) {
-        printf("apic: disabling old PIC\n");
-        // remap the PIC
-        outb(0x20, 0x11);
-        outb(0xA0, 0x11);
-        outb(0x21, 0x20);
-        outb(0xA1, 0x28);
-        outb(0x21, 4);
-        outb(0xA1, 2);
-        outb(0x21, 1);
-        outb(0xA1, 1);
-        outb(0x21, 0);
-        outb(0xA1, 0);
-        // disable the PIC
-        outb(0xA1, 0xFF);
-	    outb(0x21, 0xFF);
-    }
-
-    lapic_addr = (uint32_t *)(uint64_t)madt->lapic_address;
-
-    // i love fucking with pointers
-    madt_record_header_t *record = (madt_record_header_t *)((uint64_t)madt + 0x2C);
-    while (record != NULL) {
-        // this could've been a for loop
-        switch(record->type) {
-            case LAPIC_ADDRESS_OVERRIDE:
-                lapic_addr = (uint32_t *)((madt_lapic_addr_override_t *)record)->address;
-                break;
-            case IOAPIC:
-                printf("apic: got IOAPIC #%d\n", ioapics_length);
-                ioapics[ioapics_length++] = (madt_ioapic_t *)record;
-                break;
-            case IOAPIC_INTERRUPT_SOURCE_OVERRIDE:
-                printf("apic: got ISO #%d\n", isos_length);
-                isos[isos_length++] = (madt_ioapic_iso_t *)record;
-                break;
-            case LAPIC_NMI:
-                printf("apic: got NMI #%d\n", nmis_length);
-                nmis[nmis_length++] = (madt_lapic_nmi_t *)record;
-                break;
-            default:
-                printf("apic: unhandled MADT record type %d\n", record->type);
-                break;
-        }
-
-        record = (madt_record_header_t *)((uint64_t)record + record->length);
-        if ((uint64_t)record >= (uint64_t)madt + madt->header.length) {
-            record = NULL;
-            break;
-        }
-    }
-
-    printf("apic: LAPIC @ %#llx\n", lapic_addr);
+void lapic_init() {
+    cpuid_data_t flags = cpuid(1);
+    uint16_t apicID = flags.rbx >> 24;
 
     uint64_t apic_msr = rdmsr(0x1B);
     apic_msr |= 1 << 11;
-    cpuid_data_t flags = cpuid(1);
     if (flags.rcx & (1 << 21)) {
         printf("apic: x2APIC available, using that\n");
         x2apic = true;
@@ -211,11 +141,10 @@ void apic_init() {
     // set NMIs
     for (int i = 0; i < nmis_length; i++) {
         madt_lapic_nmi_t *nmi = nmis[i];
-        lapic_set_nmi(2, nmi->processor, nmi->flags, nmi->lint);
+        lapic_set_nmi(2, apicID, nmi->processor, nmi->flags, nmi->lint);
     }
 
     apic_timer_init();
-    ioapic_redirect_irq(0, 48);
 }
 
 static inline uint32_t reg_to_x2apic(uint32_t reg) {
@@ -242,4 +171,10 @@ void lapic_write(size_t reg, uint32_t value) {
 
     assert(lapic_addr != NULL);
     mmoutd((void *)lapic_addr + reg, value);
+}
+
+void apic_init() {
+    madt_init();
+    lapic_init();
+    ioapic_redirect_irq(0, 48);
 }

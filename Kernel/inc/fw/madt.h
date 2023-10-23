@@ -1,7 +1,6 @@
-#ifndef __KERNEL_FW_APIC_H
-#define __KERNEL_FW_APIC_H
+#ifndef __KERNEL_FW_MADT_H
+#define __KERNEL_FW_MADT_H
 
-#include <stdint.h>
 #include <acpispec/tables.h>
 
 typedef struct {
@@ -25,6 +24,12 @@ typedef struct {
     madt_record_type_t type;
     uint8_t length;
 } __attribute__((__packed__)) madt_record_header_t;
+
+typedef struct {
+    madt_record_header_t header;
+    uint8_t apicID;
+    uint32_t flags;
+} __attribute__((__packed__)) madt_lapic_t;
 
 typedef struct {
     madt_record_header_t header;
@@ -55,11 +60,18 @@ typedef struct {
     uint64_t address;
 } __attribute__((__packed__)) madt_lapic_addr_override_t;
 
-void apic_init();
+extern madt_t *madt;
+extern uint32_t *lapic_addr;
 
-#define SPURIOUS_INTERRUPT_VECTOR_REG (0xF0)
+extern madt_ioapic_iso_t *isos[256];
+extern uint8_t isos_length;
 
-uint32_t lapic_read(size_t reg);
-void lapic_write(size_t reg, uint32_t value);
+extern madt_ioapic_t *ioapics[256];
+extern uint8_t ioapics_length;
 
-#endif // __KERNEL_FW_APIC_H
+extern madt_lapic_nmi_t *nmis[256];
+extern uint8_t nmis_length;
+
+void madt_init();
+
+#endif // __KERNEL_FW_MADT_H

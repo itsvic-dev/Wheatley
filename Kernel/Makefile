@@ -9,13 +9,13 @@ LAI_SRC := core/error.c core/eval.c core/exec-operand.c \
 	drivers/ec.c drivers/timer.c \
 
 SRC := main.c libk.c panic.c printf.c \
-	fw/acpi.c fw/apic.c fw/laihost.c \
+	fw/acpi.c fw/laihost.c fw/madt.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/timer/apic.c drivers/timer/hpet.c \
 	drivers/tty/tty.c \
 	drivers/tty/fbtty.c drivers/tty/serialtty.c \
 	mm/init.c mm/internal.c mm/mm.c mm/vmm.c \
-	sys/cpuid.c sys/gdt.asm sys/gdt.c \
+	sys/apic.c sys/cpuid.c sys/gdt.asm sys/gdt.c \
 	sys/idt.c sys/io.c sys/isr.asm sys/isr.c sys/pci.c \
 	$(addprefix ../../ThirdParty/lai/,$(LAI_SRC)) \
 

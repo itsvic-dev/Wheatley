@@ -1,6 +1,6 @@
 #include <drivers/timer/apic.h>
 #include <drivers/timer/hpet.h>
-#include <fw/apic.h>
+#include <sys/apic.h>
 #include <panic.h>
 #include <printf.h>
 
