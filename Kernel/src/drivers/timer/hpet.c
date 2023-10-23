@@ -52,5 +52,5 @@ uint64_t hpet_time() {
 void hpet_sleep(uint64_t ns) {
     uint64_t comparatorTime = hpet_time() + ns;
     while (hpet_time() < comparatorTime)
-        ;
+        asm("pause");
 }

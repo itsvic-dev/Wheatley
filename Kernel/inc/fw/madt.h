@@ -63,6 +63,9 @@ typedef struct {
 extern madt_t *madt;
 extern uint32_t *lapic_addr;
 
+extern madt_lapic_t *lapics[256];
+extern uint8_t lapics_length;
+
 extern madt_ioapic_iso_t *isos[256];
 extern uint8_t isos_length;
 

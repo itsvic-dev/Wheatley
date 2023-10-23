@@ -11,7 +11,7 @@ fat32: $(FAT32_IMG)
 .PHONY: fat32
 
 OVMF_PATH := /usr/share/edk2-ovmf
-QEMU_ARGS := -m 128M -cpu host -enable-kvm -serial stdio
+QEMU_ARGS := -m 128M -cpu host -enable-kvm -serial stdio -smp sockets=1,cores=2,threads=2
 -include $(PROJECT_ROOT)/.env.mak
 
 qemu: $(FAT32_IMG)

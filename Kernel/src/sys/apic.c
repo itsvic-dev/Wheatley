@@ -178,3 +178,13 @@ void apic_init() {
     lapic_init();
     ioapic_redirect_irq(0, 48);
 }
+
+void apic_send_ipi(uint32_t lapic_id, uint32_t flags) {
+    if (x2apic) {
+        // write to the MSR directly
+        wrmsr(0x830, ((uint64_t)lapic_id << 32) | flags);
+    } else {
+        lapic_write(0x310, (lapic_id << 24));
+        lapic_write(0x300, flags);
+    }
+}

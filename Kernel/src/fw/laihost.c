@@ -103,8 +103,7 @@ void laihost_unmap(void *ptr, size_t count) {
 
 // sleep for N ms
 void laihost_sleep(uint64_t ms) {
-    uint64_t ns = ms * 10000; // to 100ns
-    hpet_sleep(ns);
+    mdelay(ms);
 }
 
 uint64_t laihost_timer(void) {

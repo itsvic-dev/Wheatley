@@ -17,6 +17,7 @@ SRC := main.c libk.c panic.c printf.c \
 	mm/init.c mm/internal.c mm/mm.c mm/vmm.c \
 	sys/apic.c sys/cpuid.c sys/gdt.asm sys/gdt.c \
 	sys/idt.c sys/io.c sys/isr.asm sys/isr.c sys/pci.c \
+	sys/smp.asm sys/smp.c \
 	$(addprefix ../../ThirdParty/lai/,$(LAI_SRC)) \
 
 CFLAGS := -fstack-protector -I$(PROJECT_ROOT)/ThirdParty/lai/include -Wno-ignored-attributes

@@ -21,5 +21,6 @@ typedef struct {
 
 void gdt_write(void);
 void gdt_reload(void);
+extern gdt_ptr_t gdt_ptr;
 
 #endif // __KERNEL_SYS_GDT_H

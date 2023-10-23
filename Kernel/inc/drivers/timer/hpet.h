@@ -49,8 +49,16 @@ typedef union {
 } hpet_timer_conf_reg_t;
 
 void hpet_init();
-// sleep for N*100 ns
+// sleep for N/100 ns
 void hpet_sleep(uint64_t ns);
 uint64_t hpet_time();
+
+static inline void udelay(uint64_t us) {
+    hpet_sleep(us * 10);
+}
+
+static inline void mdelay(uint64_t ms) {
+    udelay(ms * 1000);
+}
 
 #endif // __KERNEL_DRIVERS_TIMER_HPET_H

@@ -7,6 +7,9 @@
 madt_t *madt;
 uint32_t *lapic_addr = NULL;
 
+madt_lapic_t *lapics[256];
+uint8_t lapics_length = 0;
+
 madt_ioapic_iso_t *isos[256];
 uint8_t isos_length = 0;
 
@@ -50,6 +53,10 @@ void madt_init() {
         switch(record->type) {
             case LAPIC_ADDRESS_OVERRIDE:
                 lapic_addr = (uint32_t *)((madt_lapic_addr_override_t *)record)->address;
+                break;
+            case LAPIC:
+                printf("apic: got LAPIC #%d\n", lapics_length);
+                lapics[lapics_length++] = (madt_lapic_t *)record;
                 break;
             case IOAPIC:
                 printf("apic: got IOAPIC #%d\n", ioapics_length);

@@ -11,4 +11,6 @@ void apic_init();
 uint32_t lapic_read(size_t reg);
 void lapic_write(size_t reg, uint32_t value);
 
+void apic_send_ipi(uint32_t lapic_id, uint32_t flags);
+
 #endif // __KERNEL_FW_APIC_H

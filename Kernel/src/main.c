@@ -7,15 +7,16 @@
 #include <drivers/tty/serialtty.h>
 
 #include <fw/acpi.h>
-#include <sys/apic.h>
 
 #include <mm/init.h>
 #include <mm/mm.h>
 
+#include <sys/apic.h>
 #include <sys/cpuid.h>
 #include <sys/gdt.h>
 #include <sys/idt.h>
 #include <sys/isr.h>
+#include <sys/smp.h>
 
 #include <libk.h>
 #include <panic.h>
@@ -44,6 +45,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   acpi_init();
   apic_init();
+  smp_init();
   
   for(;;) asm("hlt");
 }
