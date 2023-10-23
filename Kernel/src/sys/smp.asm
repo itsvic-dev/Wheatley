@@ -15,8 +15,19 @@ ap_trampoline:
     cld
     ; load GDT stored at 0x9000
     lgdt [0x9000]
-    ; jump to long mode function, stored at 0x8040
-    jmp CODE_SEG:0x8040
+
+    ; some magic shit that deals with long mode i think
+    mov ecx, 0xc0000080
+    rdmsr
+    or eax, (1 << 8)
+    wrmsr
+
+    o32 jmp far [0x8020]
+
+ALIGN 16
+.farjmp:
+    .offset dd 0x8040
+    .segment dd 0x8
 
 ALIGN 64
 [BITS 64]
