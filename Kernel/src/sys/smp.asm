@@ -13,25 +13,61 @@ global ap_trampoline
 ap_trampoline:
     cli
     cld
-    ; load GDT stored at 0x9000
-    lgdt [0x9000]
 
-    ; some magic shit that deals with long mode i think
-    mov ecx, 0xc0000080
-    rdmsr
-    or eax, (1 << 8)
+    jmp 0x0000:0x8008
+
+ALIGN 4
+.flushCS:
+    xor ax, ax
+    mov ss, ax
+    mov ds, ax
+    mov sp, 0x7000
+
+    ; load empty IDT
+    lidt [0x80c0]
+
+    ; lets enter long mode!
+    mov eax, 10100000b ; set the PAE and PGE bit
+    mov cr4, eax
+
+    mov edx, [0x9010] ; read CR3 value stored at 0x9010
+    mov cr3, edx
+
+    mov ecx, 0xC0000080
+    rdmsr ; read the EFER MSR
+    or eax, 0x00000100 ; set the LME bit
     wrmsr
 
-    o32 jmp far [0x8020]
+    mov ebx, cr0
+    or ebx, 0x80000001 ; enable paging and protection simultaneously
+    mov cr0, ebx
 
-ALIGN 16
-.farjmp:
-    .offset dd 0x8040
-    .segment dd 0x8
+    ; load fake GDT
+    lgdt [0x8098]
+
+    jmp CODE_SEG:0x8100 ; jump to apLongMode
+
+
+ALIGN 64
+GDT:
+.null: dq 0
+.code: dq 0x00209A000000000000; 64-bit code descriptor
+.data: dq 0x000092000000000000; 64-bit data descriptor
+
+ALIGN 4
+.pointer:
+    dw $ - GDT - 1
+    dd 0x8080
+
+ALIGN 64
+IDT:
+    .length dw 0
+    .base dd 0
 
 ALIGN 64
 [BITS 64]
 apLongMode:
+    int3
     mov ax, DATA_SEG
     mov ds, ax
     mov es, ax
@@ -49,6 +85,7 @@ apLongMode:
     mov rsp, 0x00EFFFFF
     sub rsp, rbx
     push rdi
+
 .spinlock: ; wait for the BSP to finish
     mov rax, 0
     cmp [bspDone], rax

@@ -6,6 +6,7 @@
 #include <printf.h>
 #include <libk.h>
 #include <sys/gdt.h>
+#include <sys/io.h>
 
 void ap_trampoline(void);
 
@@ -21,6 +22,9 @@ void smp_init() {
 
     // copy the GDT pointer
     memcpy((void*)0x9000, &gdt_ptr, sizeof(gdt_ptr_t));
+
+    // put value of CR3 at 0x9010
+    *(uint32_t *)0x9010 = __readcr3();
 
     // for each local APIC
     for (int i = 0; i < lapics_length; i++) {
