@@ -3,6 +3,9 @@
 #include <drivers/fb/fb.h>
 #include <printf.h>
 #include <mm/mm.h>
+#include <sys/spinlock.h>
+
+static spinlock_t spinlock = SPINLOCK_INIT;
 
 extern char _binary_Tamsyn8x16r_psf_start;
 extern char _binary_Tamsyn8x16r_psf_end;
@@ -24,6 +27,7 @@ static inline uint8_t shifted(int i, int j) {
 }
 
 void fbtty_putchar(char c) {
+    spinlock_wait_and_acquire(&spinlock);
     int realX = _fbtty_cx * _fbtty_font->width;
     int realY = _fbtty_cy * _fbtty_font->height;
 
@@ -61,6 +65,8 @@ check_space:
         _fbtty_fb->memcpy(_fbtty_scrollbackBuf, 0, count);
         _fbtty_cy--;
     }
+
+    spinlock_release(&spinlock);
 }
 
 tty_driver_t fbtty_driver;

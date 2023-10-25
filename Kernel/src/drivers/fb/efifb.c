@@ -2,6 +2,9 @@
 #include <drivers/fb/fb.h>
 #include <libk.h>
 #include <assert.h>
+#include <sys/spinlock.h>
+
+static spinlock_t spinlock = SPINLOCK_INIT;
 
 fb_info_t __efifb_info;
 
@@ -10,15 +13,21 @@ fb_info_t *efifb_get_info(void) {
 }
 
 void efifb_setpixel(int x, int y, uint32_t pixel) {
+    spinlock_wait_and_acquire(&spinlock);
     g_handoff->fb_buffer[y * g_handoff->fb_pixelsPerScanLine + x] = pixel;
+    spinlock_release(&spinlock);
 }
 
 void efifb_readpixels(uint32_t *buf, size_t offset, size_t count) {
+    spinlock_wait_and_acquire(&spinlock);
     memcpy(buf, g_handoff->fb_buffer + offset, count);
+    spinlock_release(&spinlock);
 }
 
 void efifb_memcpy(uint32_t *buf, size_t offset, size_t count) {
+    spinlock_wait_and_acquire(&spinlock);
     memcpy(g_handoff->fb_buffer + offset, buf, count);
+    spinlock_release(&spinlock);
 }
 
 fb_driver_t efifb_driver;
