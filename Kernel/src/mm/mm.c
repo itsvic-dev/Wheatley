@@ -42,6 +42,7 @@ mm_alloc_data_t *_mm_find_alloc(uint32_t pageStart) {
 }
 
 void *kmalloc(uint64_t len) {
+    spinlock_wait_and_acquire(&_mm_spinlock);
     // get amount of space needed
     uint64_t pagesNeeded = (len + 4095) / 4096;
     // MM_PRINT("kmalloc: need %d pages", pagesNeeded);
@@ -49,7 +50,10 @@ void *kmalloc(uint64_t len) {
     // search the pages bitmap for free space
     // _mm_page_count was /8, so we need to *8
     uint64_t page = _mm_find_page(pagesNeeded);
-    if (page == -1) return NULL;
+    if (page == -1) {
+        spinlock_release(&_mm_spinlock);
+        return NULL;
+    }
 
     // search the allocs bitmap for an existing allocation
     mm_alloc_data_t *alloc = _mm_find_alloc(page);
@@ -69,11 +73,13 @@ void *kmalloc(uint64_t len) {
         _mm_set_page_bit(page + i);
     }
 
+    spinlock_release(&_mm_spinlock);
     // and return the page address as a void *
     return (void *)(page * 4096);
 }
 
 void kfree(void *buf) {
+    spinlock_wait_and_acquire(&_mm_spinlock);
     // find the allocation of buf
     uint64_t page = (uint64_t)buf / 4096;
     mm_alloc_data_t *alloc = _mm_find_alloc(page);
@@ -88,12 +94,14 @@ void kfree(void *buf) {
     for (int i = 0; i < alloc->pageCount; i++) {
         _mm_clear_page_bit(page + i);
     }
+    spinlock_release(&_mm_spinlock);
 }
 
 void *krealloc(void *buf, uint64_t newLen) {
     // if buf is NULL, behave like malloc
     if (buf == 0) return kmalloc(newLen);
 
+    spinlock_wait_and_acquire(&_mm_spinlock);
     // find the allocation of buf
     uint64_t page = (uint64_t)buf / 4096;
     mm_alloc_data_t *alloc = _mm_find_alloc(page);
@@ -106,9 +114,11 @@ void *krealloc(void *buf, uint64_t newLen) {
     uint64_t pagesNeeded = (newLen + 4095) / 4096;
     if (pagesNeeded <= alloc->pageCount) {
         // if theres enough pages to fit newLen in the current alloc, just return the same buf
+        spinlock_release(&_mm_spinlock);
         return buf;
     }
     // otherwise, create new alloc, memcpy old data, then free old alloc
+    spinlock_release(&_mm_spinlock);
     void *newBuf = kmalloc(newLen);
     memcpy(newBuf, buf, alloc->pageCount * 4096);
     kfree(buf);

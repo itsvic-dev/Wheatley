@@ -4,6 +4,8 @@
 #include "bootproto.h"
 #include "stdint.h"
 #include "printf.h"
+#include <sys/spinlock.h>
+
 #define MM_PRINT(fmt, ...) printf("mm: " fmt "\n", ##__VA_ARGS__)
 
 typedef struct {
@@ -14,6 +16,8 @@ typedef struct {
 
 extern uint32_t *_mm_pages;
 extern uint64_t _mm_page_count;
+
+extern spinlock_t _mm_spinlock;
 
 #define MM_ALLOC_MAX_SIZE 1024
 extern mm_alloc_data_t *_mm_allocs;

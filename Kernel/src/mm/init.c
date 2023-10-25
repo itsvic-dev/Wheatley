@@ -10,7 +10,10 @@ uint64_t _mm_page_count = 0;
 mm_alloc_data_t *_mm_allocs = NULL;
 uint16_t _mm_alloc_count = 0;
 
+spinlock_t _mm_spinlock = SPINLOCK_INIT;
+
 void mm_init(void) {
+    spinlock_wait_and_acquire(&_mm_spinlock);
     MM_PRINT("setting up allocation tables");
 
     // get the needed page count for _mm_pages
@@ -72,4 +75,5 @@ void mm_init(void) {
     }
 
     MM_PRINT("in the end we have %d allocations", _mm_alloc_count);
+    spinlock_release(&_mm_spinlock);
 }
