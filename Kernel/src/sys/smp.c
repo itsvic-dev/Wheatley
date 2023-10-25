@@ -10,6 +10,7 @@
 #include <sys/io.h>
 #include <sys/spinlock.h>
 #include <sys/apic.h>
+#include <deepMain.h>
 
 void ap_trampoline(void);
 
@@ -62,17 +63,24 @@ void smp_init() {
     spinlock_wait_and_acquire(&apRunningSpinlock);
     printf("smp: APs running=%d\n", aprunning);
     spinlock_release(&apRunningSpinlock);
+
+    // done initialising APs, let's enter deep main
+    deepMain();
 }
 
 void ap_startup() {
-    gdt_reload();
-    idt_reload();
-
+    // increment `aprunning` because lol
     spinlock_wait_and_acquire(&apRunningSpinlock);
     aprunning++;
     spinlock_release(&apRunningSpinlock);
 
+    // bring the CPU back up to speed with the rest of the system
+    gdt_reload();
+    idt_reload();
     lapic_init();
+
+    // and enter deep main
+    deepMain();
 
     for(;;) asm("hlt");
 }

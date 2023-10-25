@@ -25,3 +25,8 @@ void get_cpuid_string(char *buf, cpuid_data_t *data) {
     str[1] = data->rdx;
     str[2] = data->rcx;
 }
+
+uint8_t getApicID() {
+    cpuid_data_t data = cpuid(1);
+    return (uint8_t)(data.rbx >> 24);
+}

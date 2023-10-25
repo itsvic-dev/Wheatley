@@ -14,5 +14,6 @@ typedef struct {
 
 cpuid_data_t cpuid(uint64_t leaf);
 void get_cpuid_string(char *buf, cpuid_data_t *data);
+uint8_t getApicID();
 
 #endif // __KERNEL_SYS_CPUID_H

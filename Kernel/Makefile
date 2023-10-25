@@ -8,7 +8,7 @@ LAI_SRC := core/error.c core/eval.c core/exec-operand.c \
 	helpers/resource.c helpers/sci.c helpers/pm.c \
 	drivers/ec.c drivers/timer.c \
 
-SRC := main.c libk.c panic.c printf.c \
+SRC := main.c deepMain.c libk.c panic.c printf.c \
 	fw/acpi.c fw/laihost.c fw/madt.c \
 	drivers/fb/fb.c drivers/fb/efifb.c \
 	drivers/timer/apic.c drivers/timer/hpet.c \
