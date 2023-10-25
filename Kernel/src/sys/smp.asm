@@ -51,8 +51,8 @@ ALIGN 4
 ALIGN 64
 GDT:
 .null: dq 0
-.code: dq 0x00209A000000000000; 64-bit code descriptor
-.data: dq 0x000092000000000000; 64-bit data descriptor
+.code: dq 0x00209A0000000000; 64-bit code descriptor
+.data: dq 0x0000920000000000; 64-bit data descriptor
 
 ALIGN 4
 .pointer:
