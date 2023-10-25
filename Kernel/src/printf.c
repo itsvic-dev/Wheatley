@@ -32,6 +32,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/spinlock.h>
 
 #include "printf.h"
 
@@ -859,13 +860,17 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen, const
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static spinlock_t spinlock = SPINLOCK_INIT;
+
 int printf_(const char* format, ...)
 {
+  spinlock_wait_and_acquire(&spinlock);
   va_list va;
   va_start(va, format);
   char buffer[1];
   const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
   va_end(va);
+  spinlock_release(&spinlock);
   return ret;
 }
 
@@ -893,7 +898,10 @@ int snprintf_(char* buffer, size_t count, const char* format, ...)
 int vprintf_(const char* format, va_list va)
 {
   char buffer[1];
-  return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+  spinlock_wait_and_acquire(&spinlock);
+  const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+  spinlock_release(&spinlock);
+  return ret;
 }
 
 

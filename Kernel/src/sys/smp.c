@@ -9,6 +9,7 @@
 #include <sys/idt.h>
 #include <sys/io.h>
 #include <sys/spinlock.h>
+#include <sys/apic.h>
 
 void ap_trampoline(void);
 
@@ -66,9 +67,12 @@ void smp_init() {
 void ap_startup() {
     gdt_reload();
     idt_reload();
-    // test
+
     spinlock_wait_and_acquire(&apRunningSpinlock);
     aprunning++;
     spinlock_release(&apRunningSpinlock);
+
+    lapic_init();
+
     for(;;) asm("hlt");
 }

@@ -26,24 +26,6 @@ void madt_init() {
     
     printf("madt: MADT @ %#llx, %#x bytes long\n", madt, madt->header.length);
 
-    if (madt->flags & 1) {
-        printf("madt: disabling old PIC\n");
-        // remap the PIC
-        outb(0x20, 0x11);
-        outb(0xA0, 0x11);
-        outb(0x21, 0x20);
-        outb(0xA1, 0x28);
-        outb(0x21, 4);
-        outb(0xA1, 2);
-        outb(0x21, 1);
-        outb(0xA1, 1);
-        outb(0x21, 0);
-        outb(0xA1, 0);
-        // disable the PIC
-        outb(0xA1, 0xFF);
-	    outb(0x21, 0xFF);
-    }
-
     lapic_addr = (uint32_t *)(uint64_t)madt->lapic_address;
 
     // i love fucking with pointers

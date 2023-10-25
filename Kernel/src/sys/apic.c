@@ -119,6 +119,7 @@ static void lapic_set_nmi(uint8_t vec, uint8_t currentProcessor, uint8_t process
 void lapic_init() {
     cpuid_data_t flags = cpuid(1);
     uint16_t apicID = flags.rbx >> 24;
+    printf("apic: initialising LAPIC on core %d\n", apicID);
 
     uint64_t apic_msr = rdmsr(0x1B);
     apic_msr |= 1 << 11;
@@ -129,6 +130,24 @@ void lapic_init() {
         apic_msr |= 1 << 10;
     }
     wrmsr(0x1B, apic_msr);
+
+    if (madt->flags & 1) {
+        printf("apic: disabling old PIC\n");
+        // remap the PIC
+        outb(0x20, 0x11);
+        outb(0xA0, 0x11);
+        outb(0x21, 0x20);
+        outb(0xA1, 0x28);
+        outb(0x21, 4);
+        outb(0xA1, 2);
+        outb(0x21, 1);
+        outb(0xA1, 1);
+        outb(0x21, 0);
+        outb(0xA1, 0);
+        // disable the PIC
+        outb(0xA1, 0xFF);
+	    outb(0x21, 0xFF);
+    }
 
     // init LAPIC
     lapic_write(0x80, 0);
