@@ -13,7 +13,29 @@ typedef long long int64_t;
 
 typedef __SIZE_TYPE__ size_t;
 typedef uint64_t uintptr_t;
+typedef int64_t intptr_t;
+typedef uint64_t uintmax_t;
 typedef int64_t intmax_t;
+
+// stdatomic needs this
+typedef int8_t int_least8_t;
+typedef uint8_t uint_least8_t;
+typedef int16_t int_least16_t;
+typedef uint16_t uint_least16_t;
+typedef int32_t int_least32_t;
+typedef uint32_t uint_least32_t;
+typedef int64_t int_least64_t;
+typedef uint64_t uint_least64_t;
+
+// probably wrong, but idc
+typedef int8_t int_fast8_t;
+typedef uint8_t uint_fast8_t;
+typedef int64_t int_fast16_t;
+typedef uint64_t uint_fast16_t;
+typedef int64_t int_fast32_t;
+typedef uint64_t uint_fast32_t;
+typedef int64_t int_fast64_t;
+typedef uint64_t uint_fast64_t;
 
 #ifndef NULL
 #define NULL 0

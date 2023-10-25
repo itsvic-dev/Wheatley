@@ -6,12 +6,15 @@
 #include <printf.h>
 #include <libk.h>
 #include <sys/gdt.h>
+#include <sys/idt.h>
 #include <sys/io.h>
+#include <sys/spinlock.h>
 
 void ap_trampoline(void);
 
 volatile uint8_t aprunning = 0;
-uint8_t bspID, bspDone = 0; // free spinlock
+uint8_t bspID;
+spinlock_t apRunningSpinlock = SPINLOCK_INIT;
 
 void smp_init() {
     cpuid_data_t data = cpuid(1);
@@ -55,13 +58,17 @@ void smp_init() {
             do { asm("pause"); } while(lapic_read(0x300) &  (1 << 12)); // wait for delivery
         }
     }
-
-    // release the spinlocks
-    bspDone = 1;
-
+    spinlock_wait_and_acquire(&apRunningSpinlock);
     printf("smp: APs running=%d\n", aprunning);
+    spinlock_release(&apRunningSpinlock);
 }
 
 void ap_startup() {
-    while(1);
+    gdt_reload();
+    idt_reload();
+    // test
+    spinlock_wait_and_acquire(&apRunningSpinlock);
+    aprunning++;
+    spinlock_release(&apRunningSpinlock);
+    for(;;) asm("hlt");
 }

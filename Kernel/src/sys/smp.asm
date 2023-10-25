@@ -67,7 +67,6 @@ IDT:
 ALIGN 64
 [BITS 64]
 apLongMode:
-    int3
     mov ax, DATA_SEG
     mov ds, ax
     mov es, ax
@@ -86,13 +85,5 @@ apLongMode:
     sub rsp, rbx
     push rdi
 
-.spinlock: ; wait for the BSP to finish
-    mov rax, 0
-    cmp [bspDone], rax
-    jz .spinlock
-    ; increment aprunning
-    mov rax, [aprunning]
-    inc rax
-    mov [aprunning], rax
-    ; jump to C code (shouldn't return)
-    jmp ap_startup
+    mov rax, ap_startup
+    jmp rax
