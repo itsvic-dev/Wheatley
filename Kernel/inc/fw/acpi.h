@@ -1,8 +1,8 @@
 #ifndef __KERNEL_FW_ACPI_H
 #define __KERNEL_FW_ACPI_H
 
-#include <stdint.h>
 #include <acpispec/tables.h> // from LAI
+#include <stdint.h>
 
 void acpi_init(void);
 

@@ -4,7 +4,7 @@
 #include "stdint.h"
 
 typedef struct {
-    void (*putchar)(char c);
+  void (*putchar)(char c);
 } tty_driver_t;
 
 int tty_register_driver(const tty_driver_t *driver);

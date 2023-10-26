@@ -1,28 +1,28 @@
 #ifndef __KERNEL_SYS_PCI_H
 #define __KERNEL_SYS_PCI_H
 
-#include <stdint.h>
 #include <acpispec/tables.h>
+#include <stdint.h>
 
 typedef struct {
-    uint64_t baseAddr;
-    uint16_t segment;
-    uint8_t busStart;
-    uint8_t busEnd;
-    uint32_t reserved;
+  uint64_t baseAddr;
+  uint16_t segment;
+  uint8_t busStart;
+  uint8_t busEnd;
+  uint32_t reserved;
 } __attribute__((__packed__)) mcfg_addr_t;
 
 typedef struct {
-    acpi_header_t header;
-    uint8_t reserved[8];
-    mcfg_addr_t addresses[];
+  acpi_header_t header;
+  uint8_t reserved[8];
+  mcfg_addr_t addresses[];
 } __attribute__((__packed__)) mcfg_t;
 
 typedef struct {
-    uint16_t seg;
-    uint8_t bus;
-    uint8_t slot;
-    uint8_t fun;
+  uint16_t seg;
+  uint8_t bus;
+  uint8_t slot;
+  uint8_t fun;
 } pci_device_path_t;
 
 void pci_init(void);

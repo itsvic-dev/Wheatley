@@ -3,7 +3,6 @@
 
 #include <sys/isr.h>
 
-__attribute__((noreturn))
-void panic(const char *reason, registers_t *r);
+__attribute__((noreturn)) void panic(const char *reason, registers_t *r);
 
 #endif // __KERNEL_PANIC_H

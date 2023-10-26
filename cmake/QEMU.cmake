@@ -1,5 +1,5 @@
-add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/ComatOS.img
+add_custom_target(
+    fat32
     COMMAND dd if=/dev/zero of=${CMAKE_BINARY_DIR}/ComatOS.img bs=1M count=4
     COMMAND mformat -i ${CMAKE_BINARY_DIR}/ComatOS.img ::
     COMMAND mcopy -i ${CMAKE_BINARY_DIR}/ComatOS.img ${CMAKE_BINARY_DIR}/Kernel/kernel.elf ::/kernel.elf
@@ -20,5 +20,5 @@ endif()
 add_custom_target(
     qemu
     COMMAND qemu-system-x86_64 -M q35 ${QEMU_ARGS} -drive if=pflash,readonly=on,file=${OVMF_PATH}/OVMF_CODE.fd -hda ${CMAKE_BINARY_DIR}/ComatOS.img
-    DEPENDS ${CMAKE_BINARY_DIR}/ComatOS.img
+    DEPENDS fat32
 )
