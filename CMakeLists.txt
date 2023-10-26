@@ -16,3 +16,5 @@ include_directories(Includes)
 add_subdirectory(ThirdParty)
 add_subdirectory(Bootloader)
 add_subdirectory(Kernel)
+
+include(cmake/QEMU.cmake)
