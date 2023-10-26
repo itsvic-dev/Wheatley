@@ -1,15 +1,15 @@
+#include "assert.h"
+#include "bootproto.h"
+#include "elf.h"
+#include "elfloader.h"
+#include "helpers.h"
+#include "paging.h"
+#include "printf.h"
 #include <efi.h>
 #include <protocol/efi-fp.h>
 #include <protocol/efi-gop.h>
 #include <protocol/efi-lip.h>
 #include <protocol/efi-sfsp.h>
-#include "assert.h"
-#include "elf.h"
-#include "elfloader.h"
-#include "helpers.h"
-#include "printf.h"
-#include "paging.h"
-#include "bootproto.h"
 
 EFI_HANDLE Image;
 EFI_SYSTEM_TABLE *ST;
@@ -24,49 +24,43 @@ void _fltused() {}
 
 void _putchar(char c) {
   wchar wc[2];
-  wc[0] = (wchar) c;
+  wc[0] = (wchar)c;
   wc[1] = 0;
   ST->ConOut->OutputString(ST->ConOut, wc);
 }
 
-EFI_STATUS GetImage(
-  EFI_LOADED_IMAGE_PROTOCOL **image
-) {
+EFI_STATUS GetImage(EFI_LOADED_IMAGE_PROTOCOL **image) {
   EFI_GUID guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
-  return BS->OpenProtocol(Image, &guid, (void **)image, Image, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+  return BS->OpenProtocol(Image, &guid, (void **)image, Image, NULL,
+                          EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 }
 
-EFI_STATUS GetRootfs(
-  EFI_HANDLE device,
-  EFI_SIMPLE_FILE_SYSTEM_PROTOCOL **rootfs
-) {
+EFI_STATUS GetRootfs(EFI_HANDLE device,
+                     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL **rootfs) {
   EFI_GUID guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 
-  return BS->OpenProtocol(device, &guid, (void **)rootfs, Image, NULL, EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
+  return BS->OpenProtocol(device, &guid, (void **)rootfs, Image, NULL,
+                          EFI_OPEN_PROTOCOL_BY_HANDLE_PROTOCOL);
 }
 
-int my_memcmp(const void *s1, const void *s2, int len)
-{
-    unsigned char *p = (unsigned char *)s1;
-    unsigned char *q = (unsigned char *)s2;
-    int charCompareStatus = 0;
-    //If both pointer pointing same memory block
-    if (s1 == s2)
-    {
-        return charCompareStatus;
-    }
-    while (len > 0)
-    {
-        if (*p != *q)
-        {  //compare the mismatching character
-            charCompareStatus = (*p >*q)?1:-1;
-            break;
-        }
-        len--;
-        p++;
-        q++;
-    }
+int my_memcmp(const void *s1, const void *s2, int len) {
+  unsigned char *p = (unsigned char *)s1;
+  unsigned char *q = (unsigned char *)s2;
+  int charCompareStatus = 0;
+  // If both pointer pointing same memory block
+  if (s1 == s2) {
     return charCompareStatus;
+  }
+  while (len > 0) {
+    if (*p != *q) { // compare the mismatching character
+      charCompareStatus = (*p > *q) ? 1 : -1;
+      break;
+    }
+    len--;
+    p++;
+    q++;
+  }
+  return charCompareStatus;
 }
 
 bool guidMatches(EFI_GUID guid1, EFI_GUID guid2) {
@@ -75,27 +69,16 @@ bool guidMatches(EFI_GUID guid1, EFI_GUID guid2) {
 
 void Panic(char *msg) {
   printf("panic: %s\r\n", msg);
-  for (;;) asm("int3");
+  for (;;)
+    asm("int3");
 }
 
 uint64_t __kernelEntry;
 void JumpToKernel(uint64_t stack);
 
 bootproto_mmap_entry_type_t efi_type_to_bootproto_type[] = {
-  reserved,
-  reserved,
-  reserved,
-  free,
-  free,
-  used,
-  used,
-  free,
-  reserved,
-  reserved,
-  reserved,
-  reserved,
-  reserved,
-  reserved,
+    reserved, reserved, reserved, free,     free,     used,     used,
+    free,     reserved, reserved, reserved, reserved, reserved, reserved,
 };
 
 EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
@@ -125,7 +108,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   STATUS_PANIC("couldn't get SFSP");
   status = rootfs->OpenVolume(rootfs, &rootdir);
   STATUS_PANIC("couldn't get root FP");
-  status = rootdir->Open(rootdir, &kernel, L"kernel.elf", EFI_FILE_MODE_READ, 0);
+  status =
+      rootdir->Open(rootdir, &kernel, L"kernel.elf", EFI_FILE_MODE_READ, 0);
   STATUS_PANIC("couldn't get kernel.elf");
   printf("we have the kernel elf, lets try reading the elf header now\r\n");
 
@@ -146,7 +130,8 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   printf("lets read the phdr headers now\r\n");
 
   for (int i = 0; i < elfHeader.phdr_entries_num; i++) {
-    status = kernel->SetPosition(kernel, elfHeader.phdr_table + (i * elfHeader.phdr_entry_size));
+    status = kernel->SetPosition(kernel, elfHeader.phdr_table +
+                                             (i * elfHeader.phdr_entry_size));
     STATUS_PANIC("failed to move file pos to phdr entry");
 
     elf_phdr_t phdr;
@@ -154,17 +139,14 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     status = kernel->Read(kernel, &size, &phdr);
     STATUS_PANIC("failed to read phdr from file");
 
-    if (phdr.type == elf_segt_null) continue;
+    if (phdr.type == elf_segt_null)
+      continue;
 
-    printf("----\r\n%s off %#llx vaddr %#llx align %d\r\n     filesz %#llx memsz %#llx flags %d\r\n",
-      phdr.type == elf_segt_load ? "LOAD" : "????",
-      phdr.offset,
-      phdr.vaddr,
-      phdr.alignment,
-      phdr.filesz,
-      phdr.memsz,
-      phdr.flags);
-    
+    printf("----\r\n%s off %#llx vaddr %#llx align %d\r\n     filesz %#llx "
+           "memsz %#llx flags %d\r\n",
+           phdr.type == elf_segt_load ? "LOAD" : "????", phdr.offset,
+           phdr.vaddr, phdr.alignment, phdr.filesz, phdr.memsz, phdr.flags);
+
     // this basic impl won't support any phdrs other than LOAD
     ASSERT(phdr.type == elf_segt_load);
 
@@ -172,20 +154,23 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
     // allocate physical page for phdr data
     void *physPage;
-    status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, pageCount, (uint64_t *)&physPage);
+    status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, pageCount,
+                               (uint64_t *)&physPage);
     STATUS_PANIC("failed to allocate memory");
     printf("allocated %d physical pages @ %#llx\r\n", pageCount, physPage);
 
     for (uint64_t z = 0; z < pageCount; z++) {
       uint64_t pageOffset = z * phdr.alignment;
-      if (!Paging_MapPage(curPage, (uint64_t)physPage + pageOffset, phdr.vaddr + pageOffset, 0b11)) {
+      if (!Paging_MapPage(curPage, (uint64_t)physPage + pageOffset,
+                          phdr.vaddr + pageOffset, 0b11)) {
         Panic("failed to map page");
       }
     }
-    printf("mapped %d pages to virtual memory @ %#llx\r\n", pageCount, phdr.vaddr);
-    
+    printf("mapped %d pages to virtual memory @ %#llx\r\n", pageCount,
+           phdr.vaddr);
+
     BS->SetMem(physPage, phdr.memsz, 0);
-    
+
     status = kernel->SetPosition(kernel, phdr.offset);
     STATUS_PANIC("failed to move file pos to phdr offset");
 
@@ -208,18 +193,22 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   // define stack
   void *stack = NULL;
-  status = BS->AllocatePages(AllocateAnyPages, EfiLoaderData, 8, (uint64_t *)&stack);
+  status =
+      BS->AllocatePages(AllocateAnyPages, EfiLoaderData, 8, (uint64_t *)&stack);
   STATUS_PANIC("failed to allocate stack pages");
 
   for (int z = 0; z < 8; z++) {
     int pageOffset = z * 0x1000;
-    if (!Paging_MapPage(curPage, (uint64_t)stack + pageOffset, (uint64_t)stack + pageOffset, 0b11))
+    if (!Paging_MapPage(curPage, (uint64_t)stack + pageOffset,
+                        (uint64_t)stack + pageOffset, 0b11))
       Panic("failed to map the stack");
   }
   printf("new stack @ %#llx\r\n", stack);
 
   // prepare handoff
-  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData, ((sizeof(bootproto_handoff_t)) / 4096) + 1, (uint64_t *)&handoff);
+  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData,
+                             ((sizeof(bootproto_handoff_t)) / 4096) + 1,
+                             (uint64_t *)&handoff);
   STATUS_PANIC("failed to allocate page for handoff");
 
   // read ELF symbol table and dump it into handoff
@@ -239,43 +228,50 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   handoff->fb_width = gop->Mode->Info->HorizontalResolution;
   handoff->fb_height = gop->Mode->Info->VerticalResolution;
   handoff->fb_pixelsPerScanLine = gop->Mode->Info->PixelsPerScanLine;
-  printf("found GOP framebuffer %dx%d @ %#llx\r\n", handoff->fb_width, handoff->fb_height, handoff->fb_buffer);
+  printf("found GOP framebuffer %dx%d @ %#llx\r\n", handoff->fb_width,
+         handoff->fb_height, handoff->fb_buffer);
 
   // get memory map and pass it off to handoff
   uint64_t MemoryMapSize = 0;
-	EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
-	uint64_t MapKey;
-	uint64_t DescriptorSize;
-	uint32_t DescriptorVersion;
+  EFI_MEMORY_DESCRIPTOR *MemoryMap = NULL;
+  uint64_t MapKey;
+  uint64_t DescriptorSize;
+  uint32_t DescriptorVersion;
 
   uint64_t totalMemSize = 0;
 
-  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize,
+                   &DescriptorVersion);
   MemoryMapSize += DescriptorSize * 2;
   BS->AllocatePool(EfiLoaderData, MemoryMapSize, (void **)&MemoryMap);
-  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize, &DescriptorVersion);
+  BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize,
+                   &DescriptorVersion);
 
   handoff->mmap_entries_length = 0;
 
   for (int i = 0; i < (MemoryMapSize / DescriptorSize) / 2 + 1; i++) {
-    EFI_MEMORY_DESCRIPTOR *memEntry = (EFI_MEMORY_DESCRIPTOR *)((uint64_t)MemoryMap + (i * DescriptorSize));
-    
-    handoff->mmap_entry[handoff->mmap_entries_length].type = efi_type_to_bootproto_type[memEntry->Type];
-    handoff->mmap_entry[handoff->mmap_entries_length].start = memEntry->PhysicalStart;
-    handoff->mmap_entry[handoff->mmap_entries_length++].pages = memEntry->NumberOfPages;
-    
+    EFI_MEMORY_DESCRIPTOR *memEntry =
+        (EFI_MEMORY_DESCRIPTOR *)((uint64_t)MemoryMap + (i * DescriptorSize));
+
+    handoff->mmap_entry[handoff->mmap_entries_length].type =
+        efi_type_to_bootproto_type[memEntry->Type];
+    handoff->mmap_entry[handoff->mmap_entries_length].start =
+        memEntry->PhysicalStart;
+    handoff->mmap_entry[handoff->mmap_entries_length++].pages =
+        memEntry->NumberOfPages;
+
     totalMemSize += memEntry->NumberOfPages * 4096;
   }
 
   printf("total memory size: %d MB\r\n", totalMemSize / 1000 / 1000);
 
   printf("handoff ready @ %#llx\r\n", handoff);
-  __kernelEntry = (uint64_t) elfHeader.entry;
+  __kernelEntry = (uint64_t)elfHeader.entry;
 
   printf("exiting boot services and calling kernel. goodbye\r\n");
   BS->ExitBootServices(Image, MapKey);
 
-  JumpToKernel((uint64_t) stack + (8 * 4096));
+  JumpToKernel((uint64_t)stack + (8 * 4096));
 
   return EFI_ERR;
 }

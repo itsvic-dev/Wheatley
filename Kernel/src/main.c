@@ -1,8 +1,8 @@
 #include <bootproto.h>
 #include <printf.h>
 
-#include <drivers/fb/fb.h>
 #include <drivers/fb/efifb.h>
+#include <drivers/fb/fb.h>
 #include <drivers/tty/fbtty.h>
 #include <drivers/tty/serialtty.h>
 
@@ -46,6 +46,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
   acpi_init();
   apic_init();
   smp_init();
-  
-  for(;;) asm("hlt");
+
+  for (;;)
+    asm("hlt");
 }

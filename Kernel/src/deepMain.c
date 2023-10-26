@@ -1,10 +1,10 @@
 #include <deepMain.h>
-#include <sys/cpuid.h>
 #include <printf.h>
+#include <sys/cpuid.h>
 
 void deepMain(void) {
-    printf("entered deepMain on core %d\n", getApicID());
+  printf("entered deepMain on core %d\n", getApicID());
 
-    for(;;)
-        asm("hlt");
+  for (;;)
+    asm("hlt");
 }

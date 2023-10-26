@@ -1,5 +1,5 @@
-#include <sys/gdt.h>
 #include <printf.h>
+#include <sys/gdt.h>
 
 // 6 entries:
 //   - null
@@ -12,25 +12,25 @@ gdt_entry_t gdt_table[5];
 gdt_ptr_t gdt_ptr = {0};
 
 void gdt_write(void) {
-    printf("gdt: writing gdt entries\n");
-    
-    // kernel code
-    gdt_table[1].access = 0b10011010;
-    gdt_table[1].granularity = 0b00100000;
+  printf("gdt: writing gdt entries\n");
 
-    // kernel data
-    gdt_table[2].access = 0b10010010;
+  // kernel code
+  gdt_table[1].access = 0b10011010;
+  gdt_table[1].granularity = 0b00100000;
 
-    // user code
-    gdt_table[3].access = 0b11111010;
-    gdt_table[3].granularity = 0b00100000;
+  // kernel data
+  gdt_table[2].access = 0b10010010;
 
-    // user data
-    gdt_table[4].access = 0b11110010;
+  // user code
+  gdt_table[3].access = 0b11111010;
+  gdt_table[3].granularity = 0b00100000;
 
-    gdt_ptr.limit = sizeof(gdt_table) - 1;
-    gdt_ptr.addr = (uint64_t)&gdt_table;
+  // user data
+  gdt_table[4].access = 0b11110010;
 
-    // TODO: install TSS
-    gdt_reload();
+  gdt_ptr.limit = sizeof(gdt_table) - 1;
+  gdt_ptr.addr = (uint64_t)&gdt_table;
+
+  // TODO: install TSS
+  gdt_reload();
 }

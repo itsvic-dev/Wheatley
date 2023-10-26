@@ -2,16 +2,16 @@
 #define __KERNEL_MM_INTERNAL_H
 
 #include "bootproto.h"
-#include "stdint.h"
 #include "printf.h"
+#include "stdint.h"
 #include <sys/spinlock.h>
 
 #define MM_PRINT(fmt, ...) printf("mm: " fmt "\n", ##__VA_ARGS__)
 
 typedef struct {
-    uint64_t pageStart;
-    uint16_t pageCount;
-    bool used;
+  uint64_t pageStart;
+  uint16_t pageCount;
+  bool used;
 } __attribute__((__packed__)) mm_alloc_data_t;
 
 extern uint32_t *_mm_pages;

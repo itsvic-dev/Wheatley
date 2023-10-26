@@ -1,8 +1,8 @@
 #include <drivers/timer/apic.h>
 #include <drivers/timer/hpet.h>
-#include <sys/apic.h>
 #include <panic.h>
 #include <printf.h>
+#include <sys/apic.h>
 
 uint32_t ticksIn10ms;
 
@@ -14,30 +14,30 @@ uint32_t ticksIn10ms;
 #define TIMER_INT_MASKED (TIMER_INT | ((uint32_t)1 << 16))
 
 void apic_timer_init() {
-    printf("apic: callibrating timer with HPET\n");
+  printf("apic: callibrating timer with HPET\n");
 
-    lapic_write(0x3E0, 3);
-    lapic_write(0x380, 0xFFFFFFFF);
-    hpet_sleep(10 * 100000);
-    lapic_write(0x320, 0x10000);
-    ticksIn10ms = 0xFFFFFFFF - lapic_read(0x390);
-    printf("ticksIn10ms=%#llx\n", ticksIn10ms);
+  lapic_write(0x3E0, 3);
+  lapic_write(0x380, 0xFFFFFFFF);
+  hpet_sleep(10 * 100000);
+  lapic_write(0x320, 0x10000);
+  ticksIn10ms = 0xFFFFFFFF - lapic_read(0x390);
+  printf("ticksIn10ms=%#llx\n", ticksIn10ms);
 
-    lapic_write(0x320, 32 | 0x20000);
-    lapic_write(0x3E0, 3);
-    lapic_write(0x380, ticksIn10ms / 10);
+  lapic_write(0x320, 32 | 0x20000);
+  lapic_write(0x3E0, 3);
+  lapic_write(0x380, ticksIn10ms / 10);
 }
 
 void timer_stop_sched(void) {
-    lapic_write(0x380, 0);
-    lapic_write(0x320, (1 << 16));
+  lapic_write(0x380, 0);
+  lapic_write(0x320, (1 << 16));
 }
 
 void timer_sched_oneshot(uint8_t isr, uint32_t us) {
-    asm("cli");
-    timer_stop_sched();
-    lapic_write(0x320, isr | 0x20000);
-    lapic_write(0x3E0, 3);
-    lapic_write(0x380, ((ticksIn10ms * (us / 1000))) / 10);
-    asm("sti");
+  asm("cli");
+  timer_stop_sched();
+  lapic_write(0x320, isr | 0x20000);
+  lapic_write(0x3E0, 3);
+  lapic_write(0x380, ((ticksIn10ms * (us / 1000))) / 10);
+  asm("sti");
 }
