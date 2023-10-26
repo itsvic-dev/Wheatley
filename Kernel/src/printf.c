@@ -291,8 +291,8 @@ static size_t _ntoa_long(out_fct_type out, char *buffer, size_t idx,
     do {
       const char digit = (char)(value % base);
       buf[len++] = digit < 10
-                       ? '0' + digit
-                       : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
+                     ? '0' + digit
+                     : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -321,8 +321,8 @@ static size_t _ntoa_long_long(out_fct_type out, char *buffer, size_t idx,
     do {
       const char digit = (char)(value % base);
       buf[len++] = digit < 10
-                       ? '0' + digit
-                       : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
+                     ? '0' + digit
+                     : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
       value /= base;
     } while (value && (len < PRINTF_NTOA_BUFFER_SIZE));
   }
@@ -766,9 +766,9 @@ static int _vsnprintf(out_fct_type out, char *buffer, const size_t maxlen,
                            (unsigned long)(value > 0 ? value : 0 - value),
                            value < 0, base, precision, width, flags);
         } else {
-          const int value = (flags & FLAGS_CHAR)    ? (char)va_arg(va, int)
-                            : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int)
-                                                    : va_arg(va, int);
+          const int value = (flags & FLAGS_CHAR)  ? (char)va_arg(va, int)
+                          : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int)
+                                                  : va_arg(va, int);
           idx = _ntoa_long(out, buffer, idx, maxlen,
                            (unsigned int)(value > 0 ? value : 0 - value),
                            value < 0, base, precision, width, flags);

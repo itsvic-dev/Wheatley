@@ -5,13 +5,13 @@
 
 typedef union {
   struct {
-    uint8_t revID : 8;
-    uint8_t numTimCap : 5;
-    bool countSizeCap : 1;
-    bool reserved : 1;
-    bool legacyReplaceCap : 1;
-    uint16_t vendorID : 16;
-    uint32_t counterClkPeriod : 32;
+    uint8_t revID: 8;
+    uint8_t numTimCap: 5;
+    bool countSizeCap: 1;
+    bool reserved: 1;
+    bool legacyReplaceCap: 1;
+    uint16_t vendorID: 16;
+    uint32_t counterClkPeriod: 32;
   };
 
   uint64_t data;
@@ -19,9 +19,9 @@ typedef union {
 
 typedef union {
   struct {
-    bool enable : 1;        // overall enable
-    bool legacyReplace : 1; // legacy replace enable
-    uint64_t reserved : 62;
+    bool enable: 1;        // overall enable
+    bool legacyReplace: 1; // legacy replace enable
+    uint64_t reserved: 62;
   };
 
   uint64_t data;
@@ -29,20 +29,20 @@ typedef union {
 
 typedef union {
   struct {
-    bool reserved1 : 1;
-    bool intType : 1;
-    bool intEnable : 1;
-    bool type : 1;
-    bool perIntCap : 1;
-    bool sizeCap : 1;
-    bool periodicSet : 1;
-    bool reserved2 : 1;
-    bool mode32 : 1;
-    uint8_t intRoute : 5;
-    bool fsbEn : 1;
-    bool fsbIntDelCap : 1;
-    uint16_t reserved3 : 16;
-    uint32_t intRouteCap : 32;
+    bool reserved1: 1;
+    bool intType: 1;
+    bool intEnable: 1;
+    bool type: 1;
+    bool perIntCap: 1;
+    bool sizeCap: 1;
+    bool periodicSet: 1;
+    bool reserved2: 1;
+    bool mode32: 1;
+    uint8_t intRoute: 5;
+    bool fsbEn: 1;
+    bool fsbIntDelCap: 1;
+    uint16_t reserved3: 16;
+    uint32_t intRouteCap: 32;
   };
 
   uint64_t data;
