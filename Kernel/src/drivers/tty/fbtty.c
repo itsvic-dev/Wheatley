@@ -50,13 +50,17 @@ void fbtty_putchar(char c) {
 
   _fbtty_cx++;
 
-check_space:
-  if (_fbtty_cx * _fbtty_font->width >= _fbtty_fbw) {
+  // FIXME: on some resolutions, the current X and Y can sometimes overflow into
+  // out of bounds space. thus, we're being super paranoid by checking the pixel
+  // in front of us, instead of ourselves. we really shouldn't have to do this,
+  // but i have no idea why it happens.
+  if ((_fbtty_cx + 1) * _fbtty_font->width >= _fbtty_fbw) {
     _fbtty_cy++;
     _fbtty_cx = 0;
   }
 
-  if (_fbtty_cy * _fbtty_font->height >= _fbtty_fbh) {
+check_space:
+  if ((_fbtty_cy + 1) * _fbtty_font->height >= _fbtty_fbh) {
     uint64_t offset = _fbtty_fbw * _fbtty_font->height;
     uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4;
     _fbtty_fb->readpixels(_fbtty_scrollbackBuf, offset, count);
