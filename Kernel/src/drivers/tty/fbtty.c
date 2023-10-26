@@ -43,8 +43,9 @@ void fbtty_putchar(char c) {
 
   for (j = 0; j < _fbtty_font->height; j++) {
     for (i = 0; i < _fbtty_font->width; i++) {
-      _fbtty_fb->setpixel(realX + i, realY + j,
-                          shifted(glyphData[j], i) ? 0xffffff : 0);
+      // free optimization: setpixel only if the glyph bit is actually set
+      if (shifted(glyphData[j], i))
+        _fbtty_fb->setpixel(realX + i, realY + j, 0xFFFFFF);
     }
   }
 
