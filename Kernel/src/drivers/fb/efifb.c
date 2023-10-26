@@ -33,6 +33,15 @@ void efifb_memcpy(uint32_t *buf, size_t offset, size_t count) {
   spinlock_release(&spinlock);
 }
 
+void efifb_pixset(uint32_t color, size_t offset, size_t count) {
+  spinlock_wait_and_acquire(&spinlock);
+  while (count--) {
+    g_handoff->fb_buffer[offset] = color;
+    doubleBuf[offset++] = color;
+  }
+  spinlock_release(&spinlock);
+}
+
 fb_driver_t efifb_driver;
 
 void efifb_module_init() {
@@ -40,6 +49,7 @@ void efifb_module_init() {
   efifb_driver.setpixel = &efifb_setpixel;
   efifb_driver.readpixels = &efifb_readpixels;
   efifb_driver.memcpy = &efifb_memcpy;
+  efifb_driver.pixset = &efifb_pixset;
 
   assert(g_handoff->fb_pixelsPerScanLine == g_handoff->fb_width);
   info.width = g_handoff->fb_width;

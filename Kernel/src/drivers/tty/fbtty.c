@@ -61,7 +61,7 @@ check_space:
     uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4;
     _fbtty_fb->readpixels(_fbtty_scrollbackBuf, offset, count);
     _fbtty_fb->memcpy(_fbtty_scrollbackBuf, 0, count);
-    // TODO: fb->memset
+    _fbtty_fb->pixset(0, count / 4, offset);
     _fbtty_cy--;
   }
 

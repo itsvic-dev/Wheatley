@@ -13,6 +13,7 @@ typedef struct {
   void (*setpixel)(int x, int y, uint32_t pixel);
   void (*readpixels)(uint32_t *buf, size_t offset, size_t count);
   void (*memcpy)(uint32_t *buf, size_t offset, size_t count);
+  void (*pixset)(uint32_t color, size_t offset, size_t count);
 } fb_driver_t;
 
 int fb_register_driver(fb_driver_t *driver);
