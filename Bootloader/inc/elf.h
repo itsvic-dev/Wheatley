@@ -107,7 +107,7 @@ typedef struct {
   Elf64_Xword size;
 } __attribute__((__packed__)) elf_symbol_t;
 
-#define ELF_SYMBOL_TYPE(i) ((i) & 0xf)
+#define ELF_SYMBOL_TYPE(i) ((i)&0xf)
 #define ELF_SYMBOL_BIND(i) ((i) >> 4)
 
 typedef enum {
