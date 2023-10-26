@@ -29,6 +29,9 @@ void kernel_main(bootproto_handoff_t *handoff) {
   gdt_write();
   isr_write();
 
+  // install panic's NMI vector
+  isr_register_handler(2, nmi_vector);
+
   // init MM
   mm_init();
 

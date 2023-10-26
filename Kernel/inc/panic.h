@@ -5,4 +5,6 @@
 
 __attribute__((noreturn)) void panic(const char *reason, registers_t *r);
 
+void nmi_vector(registers_t *registers);
+
 #endif // __KERNEL_PANIC_H

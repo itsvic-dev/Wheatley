@@ -41,18 +41,24 @@ void panic_backtrace(uint64_t maxFrames) {
   }
 }
 
-bool already_panicked = false;
+bool is_halting = false;
 static spinlock_t lock = SPINLOCK_INIT;
+
+__attribute__((noreturn)) void halt() {
+  for (;;) {
+    asm("cli; hlt");
+  }
+}
 
 __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
   spinlock_wait_and_acquire(&lock);
   uint8_t apicID = getApicID();
 
-  if (already_panicked) {
+  if (is_halting) {
     printf("*** PANIC called on core %d after/within panic\n", apicID);
     goto end;
   }
-  already_panicked = true;
+  is_halting = true;
 
   printf("\n*** PANIC on core %d: %s ***\n", apicID, reason);
 
@@ -82,11 +88,17 @@ __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
   printf("\n*** Halting now, good night.\n");
   // tell all other CPUs that a panic has just happened
   apic_send_ipi(0, (0b100ul << 8) | (0b11ul << 18));
-  spinlock_release(&lock);
 end:
-  asm("cli");
-  for (;;)
-    asm("hlt");
+  spinlock_release(&lock);
+  halt();
+}
+
+void nmi_vector(registers_t *registers) {
+  if (is_halting) {
+    halt();
+  } else {
+    panic("Unexpected NMI", registers);
+  }
 }
 
 // implement SSP using panic
