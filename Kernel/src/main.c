@@ -22,9 +22,8 @@ bootproto_handoff_t *g_handoff;
 void kernel_main(bootproto_handoff_t *handoff) {
   g_handoff = handoff;
 
-  // init early modules such as serialtty, efifb, fbtty
+  // init early modules
   serialtty_module_init();
-  efifb_module_init();
 
   gdt_write();
   isr_write();
@@ -36,6 +35,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
   mm_init();
 
   // fbtty depends on MM
+  efifb_module_init();
   fbtty_module_init();
 
   cpuid_data_t cpuid_data = cpuid(0);

@@ -57,11 +57,11 @@ check_space:
   }
 
   if (_fbtty_cy * _fbtty_font->height >= _fbtty_fbh) {
-    // TODO: add double-buffering maybe
     uint64_t offset = _fbtty_fbw * _fbtty_font->height;
-    uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 8;
+    uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4;
     _fbtty_fb->readpixels(_fbtty_scrollbackBuf, offset, count);
     _fbtty_fb->memcpy(_fbtty_scrollbackBuf, 0, count);
+    // TODO: fb->memset
     _fbtty_cy--;
   }
 

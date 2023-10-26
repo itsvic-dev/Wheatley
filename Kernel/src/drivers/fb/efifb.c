@@ -1,3 +1,4 @@
+#include "mm/mm.h"
 #include <assert.h>
 #include <drivers/fb/efifb.h>
 #include <drivers/fb/fb.h>
@@ -6,25 +7,29 @@
 
 static spinlock_t spinlock = SPINLOCK_INIT;
 
-fb_info_t __efifb_info;
+static fb_info_t info;
 
-fb_info_t *efifb_get_info(void) { return &__efifb_info; }
+fb_info_t *efifb_get_info(void) { return &info; }
+static uint32_t *doubleBuf;
 
 void efifb_setpixel(int x, int y, uint32_t pixel) {
   spinlock_wait_and_acquire(&spinlock);
-  g_handoff->fb_buffer[y * g_handoff->fb_pixelsPerScanLine + x] = pixel;
+  int idx = y * g_handoff->fb_pixelsPerScanLine + x;
+  g_handoff->fb_buffer[idx] = pixel;
+  doubleBuf[idx] = pixel;
   spinlock_release(&spinlock);
 }
 
 void efifb_readpixels(uint32_t *buf, size_t offset, size_t count) {
   spinlock_wait_and_acquire(&spinlock);
-  memcpy(buf, g_handoff->fb_buffer + offset, count);
+  memcpy(buf, doubleBuf + offset, count);
   spinlock_release(&spinlock);
 }
 
 void efifb_memcpy(uint32_t *buf, size_t offset, size_t count) {
   spinlock_wait_and_acquire(&spinlock);
   memcpy(g_handoff->fb_buffer + offset, buf, count);
+  memcpy(doubleBuf + offset, buf, count);
   spinlock_release(&spinlock);
 }
 
@@ -37,10 +42,12 @@ void efifb_module_init() {
   efifb_driver.memcpy = &efifb_memcpy;
 
   assert(g_handoff->fb_pixelsPerScanLine == g_handoff->fb_width);
-  __efifb_info.width = g_handoff->fb_width;
-  __efifb_info.height = g_handoff->fb_height;
+  info.width = g_handoff->fb_width;
+  info.height = g_handoff->fb_height;
   for (int idx = 0; idx < g_handoff->fb_pixelsPerScanLine * g_handoff->fb_width;
        idx++)
     g_handoff->fb_buffer[idx] = 0;
+  doubleBuf = kmalloc(info.width * info.height * 4);
+  memset(doubleBuf, 0, info.width * info.height * 4);
   fb_register_driver(&efifb_driver);
 }
