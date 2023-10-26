@@ -1,6 +1,7 @@
 ; stolen from polaris looooooool
 
 %macro pushall 0
+push gs
 push rax
 push rbx
 push rcx
@@ -34,6 +35,7 @@ pop rdx
 pop rcx
 pop rbx
 pop rax
+pop gs
 %endmacro
 
 extern isr_handle
@@ -45,7 +47,6 @@ isr_common_format:
     cld
     mov rdi, rsp
     call isr_handle
-    ; pop all the registers
     popall
     ; consume the ISR stack frame
     add rsp, 16

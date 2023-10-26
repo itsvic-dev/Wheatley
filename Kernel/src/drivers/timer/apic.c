@@ -22,10 +22,6 @@ void apic_timer_init() {
   lapic_write(0x320, 0x10000);
   ticksIn10ms = 0xFFFFFFFF - lapic_read(0x390);
   printf("ticksIn10ms=%#llx\n", ticksIn10ms);
-
-  lapic_write(0x320, 32 | 0x20000);
-  lapic_write(0x3E0, 3);
-  lapic_write(0x380, ticksIn10ms / 10);
 }
 
 void timer_stop_sched(void) {
@@ -38,6 +34,6 @@ void timer_sched_oneshot(uint8_t isr, uint32_t us) {
   timer_stop_sched();
   lapic_write(0x320, isr | 0x20000);
   lapic_write(0x3E0, 3);
-  lapic_write(0x380, ((ticksIn10ms * (us / 1000))) / 10);
+  lapic_write(0x380, 0xFFFFFFFF - ((ticksIn10ms * (us / 1000))) / 10);
   asm("sti");
 }

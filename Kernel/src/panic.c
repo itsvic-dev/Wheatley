@@ -44,13 +44,15 @@ void panic_backtrace(uint64_t maxFrames) {
 bool is_halting = false;
 static spinlock_t lock = SPINLOCK_INIT;
 
-__attribute__((noreturn)) void halt() {
+static inline __attribute__((noreturn)) void halt() {
   for (;;) {
     asm("cli; hlt");
   }
 }
 
 __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
+  asm("cli"); // we don't want any external interrupts to bother us during a
+              // panic
   spinlock_wait_and_acquire(&lock);
   uint8_t apicID = getApicID();
 
@@ -76,10 +78,11 @@ __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
            "  R10: 0x%016llx      R11: 0x%016llx\n"
            "  R12: 0x%016llx      R13: 0x%016llx\n"
            "  R14: 0x%016llx      R15: 0x%016llx\n"
-           "   CS: 0x%016llx       SS: 0x%016llx\n",
+           "   CS: 0x%016llx       SS: 0x%016llx\n"
+           "   GS: 0x%016llx\n",
            r->errorCode, r->rip, r->rflags, r->rax, r->rbx, r->rcx, r->rdx,
            r->rsp, r->rbp, r->rsi, r->rdi, r->r8, r->r9, r->r10, r->r11, r->r12,
-           r->r13, r->r14, r->r15, r->cs, r->ss);
+           r->r13, r->r14, r->r15, r->cs, r->ss, r->schedTask);
   }
 
   printf("\nBacktrace:\n");

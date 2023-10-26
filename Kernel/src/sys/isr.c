@@ -1,3 +1,4 @@
+#include "sys/apic.h"
 #include <panic.h>
 #include <printf.h>
 #include <sys/idt.h>
@@ -317,4 +318,5 @@ void isr_handle(registers_t *r) {
   }
 
   printf("isr: Unhandled ISR: %d\n", r->isrNumber);
+  apic_eoi();
 }
