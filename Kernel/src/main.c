@@ -1,25 +1,21 @@
 #include <bootproto.h>
-#include <printf.h>
-
 #include <drivers/fb/efifb.h>
 #include <drivers/fb/fb.h>
 #include <drivers/tty/fbtty.h>
 #include <drivers/tty/serialtty.h>
-
 #include <fw/acpi.h>
-
+#include <libk.h>
 #include <mm/init.h>
 #include <mm/mm.h>
-
+#include <panic.h>
+#include <printf.h>
+#include <sched/sched.h>
 #include <sys/apic.h>
 #include <sys/cpuid.h>
 #include <sys/gdt.h>
 #include <sys/idt.h>
 #include <sys/isr.h>
 #include <sys/smp.h>
-
-#include <libk.h>
-#include <panic.h>
 
 bootproto_handoff_t *g_handoff;
 
@@ -45,8 +41,7 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   acpi_init();
   apic_init();
+  sched_init();
+  // smp init won't return as it enters deep main on all cores
   smp_init();
-
-  for (;;)
-    asm("hlt");
 }

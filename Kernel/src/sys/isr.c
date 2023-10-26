@@ -8,7 +8,7 @@ void isr_write(void) {
 
   idt_set_handler(0, 0, isr0);
   idt_set_handler(1, 1, isr1);
-  idt_set_handler(2, 1, isr2);
+  idt_set_handler(2, 0, isr2);
   idt_set_handler(3, 0, isr3);
   idt_set_handler(4, 0, isr4);
   idt_set_handler(5, 0, isr5);

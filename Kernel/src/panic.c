@@ -1,7 +1,11 @@
 #include "panic.h"
+#include "fw/madt.h"
 #include "libk.h"
 #include "printf.h"
 #include "stdint.h"
+#include "sys/apic.h"
+#include "sys/cpuid.h"
+#include "sys/spinlock.h"
 
 typedef struct stackframe {
   struct stackframe *rbp;
@@ -38,15 +42,19 @@ void panic_backtrace(uint64_t maxFrames) {
 }
 
 bool already_panicked = false;
+static spinlock_t lock = SPINLOCK_INIT;
 
 __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
+  spinlock_wait_and_acquire(&lock);
+  uint8_t apicID = getApicID();
+
   if (already_panicked) {
-    printf("*** PANIC called after/within panic\n");
+    printf("*** PANIC called on core %d after/within panic\n", apicID);
     goto end;
   }
   already_panicked = true;
 
-  printf("\n*** PANIC: %s ***\n", reason);
+  printf("\n*** PANIC on core %d: %s ***\n", apicID, reason);
 
   if (r == NULL) {
     printf("\nRegister information unavailable\n");
@@ -71,8 +79,11 @@ __attribute__((noreturn)) void panic(const char *reason, registers_t *r) {
   printf("\nBacktrace:\n");
   panic_backtrace(16);
 
-end:
   printf("\n*** Halting now, good night.\n");
+  // tell all other CPUs that a panic has just happened
+  apic_send_ipi(0, (0b100ul << 8) | (0b11ul << 18));
+  spinlock_release(&lock);
+end:
   asm("cli");
   for (;;)
     asm("hlt");
