@@ -13,5 +13,6 @@ add_link_options(-fuse-ld=lld -nostdlib)
 
 include_directories(Includes)
 
+add_subdirectory(ThirdParty)
 add_subdirectory(Bootloader)
-# add_subdirectory(Kernel)
+add_subdirectory(Kernel)

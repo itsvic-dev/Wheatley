@@ -28,5 +28,6 @@ target_include_directories(
     bootldr
     PRIVATE
     inc
-    ${CMAKE_SOURCE_DIR}/ThirdParty/efi
 )
+
+target_link_libraries(bootldr efiHeaders)
