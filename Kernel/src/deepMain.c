@@ -6,9 +6,7 @@
 void deepMain(void) {
   printf("entered deepMain on core %d\n", getApicID());
 
-  if (getApicID() == 0)
-    panic("test", 0);
-  // sched_start();
+  sched_start();
 
   for (;;)
     asm("hlt");
