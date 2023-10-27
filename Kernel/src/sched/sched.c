@@ -49,6 +49,15 @@ void sched_task_ended(void) {
 void sched_resched(registers_t *registers) {
   pcrb_t *pcrb = pcrb_get();
   sched_task_t *task = (sched_task_t *)pcrb->currentTask;
+  if (task) {
+    // we had a task assigned but its runtime has ran out
+    // FIXME: is this done impl-wise?
+    spinlock_wait_and_acquire(&task->lock);
+    task->registers = *registers;
+    spinlock_release(&task->lock);
+    task = task->next;
+  }
+
   if (!task) {
     // find a free task
     task = firstTask;
@@ -65,13 +74,6 @@ void sched_resched(registers_t *registers) {
     }
     // FIXME: if there are no free tasks left, reset all task runtimes
     pcrb->currentTask = task;
-  } else {
-    // we had a task assigned but its runtime has ran out
-    // FIXME: is this done impl-wise?
-    spinlock_wait_and_acquire(&task->lock);
-    task->registers = *registers;
-    spinlock_release(&task->lock);
-    task = task->next;
   }
 
   printf("sched_resched: task=%#llx\n", task);

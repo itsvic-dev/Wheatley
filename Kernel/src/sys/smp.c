@@ -15,9 +15,11 @@ void ap_trampoline(void);
 
 volatile uint8_t aprunning = 0;
 uint8_t bspID;
-spinlock_t apRunningSpinlock = SPINLOCK_INIT;
+static spinlock_t aprLock = SPINLOCK_INIT;
+static spinlock_t bspLock = SPINLOCK_INIT;
 
 void smp_init() {
+  spinlock_wait_and_acquire(&bspLock);
   cpuid_data_t data = cpuid(1);
   bspID = data.rbx >> 24;
 
@@ -64,9 +66,11 @@ void smp_init() {
       } while (lapic_read(0x300) & (1 << 12)); // wait for delivery
     }
   }
-  spinlock_wait_and_acquire(&apRunningSpinlock);
+  spinlock_wait_and_acquire(&aprLock);
   printf("smp: APs running=%d\n", aprunning);
-  spinlock_release(&apRunningSpinlock);
+  spinlock_release(&aprLock);
+
+  spinlock_release(&bspLock);
 
   // done initialising APs, let's enter deep main
   deepMain();
@@ -74,14 +78,18 @@ void smp_init() {
 
 void ap_startup() {
   // increment `aprunning` because lol
-  spinlock_wait_and_acquire(&apRunningSpinlock);
+  spinlock_wait_and_acquire(&aprLock);
   aprunning++;
-  spinlock_release(&apRunningSpinlock);
+  spinlock_release(&aprLock);
 
   // bring the CPU back up to speed with the rest of the system
   gdt_reload();
   idt_reload();
   lapic_init();
+
+  // wait for BSP to finish
+  spinlock_wait_and_acquire(&bspLock);
+  spinlock_release(&bspLock);
 
   // and enter deep main
   deepMain();
