@@ -1,7 +1,6 @@
 ; stolen from polaris looooooool
 
 %macro pushall 0
-push gs
 push rax
 push rbx
 push rcx
@@ -35,7 +34,6 @@ pop rdx
 pop rcx
 pop rbx
 pop rax
-pop gs
 %endmacro
 
 extern isr_handle

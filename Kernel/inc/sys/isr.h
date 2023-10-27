@@ -62,7 +62,6 @@ typedef struct {
   uint64_t rax;
 
   // other data from isr_common_format
-  uint64_t schedTask;
   uint64_t isrNumber;
 
   // registers from ISR stack frame

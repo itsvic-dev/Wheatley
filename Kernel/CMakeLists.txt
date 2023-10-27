@@ -16,7 +16,8 @@ add_executable(kernel.elf
 
     src/sys/apic.c src/sys/cpuid.c src/sys/gdt.asm src/sys/gdt.c
     src/sys/idt.c src/sys/io.c src/sys/isr.asm src/sys/isr.c
-    src/sys/pci.c src/sys/smp.asm src/sys/smp.c
+    src/sys/pci.c src/sys/pcrb.c src/sys/smp.asm src/sys/smp.c
+
     ${CMAKE_CURRENT_BINARY_DIR}/tamsyn.o
 )
 

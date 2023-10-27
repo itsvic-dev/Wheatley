@@ -4,6 +4,7 @@
 #include "stdint.h"
 #include "sys/apic.h"
 #include "sys/isr.h"
+#include "sys/pcrb.h"
 #include <assert.h>
 #include <printf.h>
 #include <sched/kernel.h>
@@ -17,25 +18,21 @@
 uint64_t nextTid = 0;
 // a pointer to the first task, usually the main kernel task
 static sched_task_t *firstTask = NULL;
-//
 static sched_task_t *lastTask = NULL;
 
 void sched_start(void) {
   assert(firstTask != NULL);
-  // force a free task search by setting GS to 0, then trigger scheduler
+  // force a free task search, then trigger scheduler
   // interrupt
-  asm("xor rax, rax;"
-      "mov gs, rax;"
-      "int 48" ::
-          : "rax");
+  pcrb_get()->currentTask = 0;
+  asm("int 48");
 }
 
 void sched_task_ended(void) {
-  uint64_t gs = 0;
-  asm("mov %[gs], gs" : [gs] "=q"(gs) : : "memory");
-  assert(gs != 0);
-  printf("sched_task_ended with task %#llx\n", gs);
-  sched_task_t *task = (sched_task_t *)gs;
+  pcrb_t *pcrb = pcrb_get();
+  sched_task_t *task = (sched_task_t *)pcrb->currentTask;
+  assert(task != 0);
+  printf("sched_task_ended with task %#llx\n", task);
   assert(task != firstTask || !"kernel task should never return");
   spinlock_wait_and_acquire(&task->lock);
   task->state = TASK_RETURNED;
@@ -45,14 +42,13 @@ void sched_task_ended(void) {
 
   // cancel the APIC timer, then force a reschedule with a free task search
   timer_stop_sched();
-  asm("xor rax, rax;"
-      "mov gs, rax;"
-      "int 48" ::
-          : "rax");
+  pcrb_get()->currentTask = 0;
+  asm("int 48");
 }
 
 void sched_resched(registers_t *registers) {
-  sched_task_t *task = (sched_task_t *)registers->schedTask;
+  pcrb_t *pcrb = pcrb_get();
+  sched_task_t *task = (sched_task_t *)pcrb->currentTask;
   if (!task) {
     // find a free task
     task = firstTask;
@@ -68,7 +64,7 @@ void sched_resched(registers_t *registers) {
       }
     }
     // FIXME: if there are no free tasks left, reset all task runtimes
-    registers->schedTask = (uint64_t)task;
+    pcrb->currentTask = task;
   } else {
     // we had a task assigned but its runtime has ran out
     // FIXME: is this done impl-wise?
@@ -99,7 +95,6 @@ void sched_resched(registers_t *registers) {
     // give it 8K of stack
     void *stack = kmalloc(8 * 4096);
     task->registers.rsp = (uint64_t)stack + (8 * 4096) - 8;
-    task->registers.schedTask = (uint64_t)task;
     task->registers.rflags |= 1;
     // push the return value (sched_task_ended) to the stack
     // in case the task returns before its runtime ends
