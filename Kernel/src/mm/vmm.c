@@ -112,7 +112,11 @@ void vmm_init(void) {
     }
   }
 
-  // FIXME: identity map first 16 MB of memory (required for SMP init)
+  // identity map 256 MB of memory (should include most of ACPI)
+  for (int i = 0; i < 0x10000; i++) {
+    uint64_t addr = i * 4096;
+    vmm_map_page(kernel_pagemap.topLevel, addr, addr, 0b11);
+  }
 
   printf("vmm: switching pagemaps now\n");
   __writecr3((uint64_t)kernel_pagemap.topLevel);

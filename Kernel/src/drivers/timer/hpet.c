@@ -1,3 +1,4 @@
+#include "mm/vmm.h"
 #include <acpispec/tables.h>
 #include <assert.h>
 #include <drivers/timer/hpet.h>
@@ -32,6 +33,10 @@ void hpet_init() {
 
   printf("hpet: HPET @ %#llx\n", hpet);
   hpetData = (void *)hpet->gas.base;
+
+  // identity map the HPET address
+  vmm_map_page(vmm_get_current_pagemap(), (uint64_t)hpetData,
+               (uint64_t)hpetData, 0b11);
 
   // get general capabilities register
   hpet_gen_cap_reg_t genCap = *(hpet_gen_cap_reg_t *)hpetData;
