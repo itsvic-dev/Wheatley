@@ -1,8 +1,10 @@
 #include "mm/mm.h"
+#include "mm/vmm.h"
 #include <assert.h>
 #include <drivers/fb/efifb.h>
 #include <drivers/fb/fb.h>
 #include <libk.h>
+#include <printf.h>
 #include <sys/spinlock.h>
 
 static spinlock_t spinlock = SPINLOCK_INIT;
@@ -54,6 +56,17 @@ void efifb_module_init() {
   assert(g_handoff->fb_pixelsPerScanLine == g_handoff->fb_width);
   info.width = g_handoff->fb_width;
   info.height = g_handoff->fb_height;
+
+  // the buffer needs to be page mapped as its not a part of handoff's memory
+  // mappings
+  uint64_t spaceNeeded =
+      g_handoff->fb_pixelsPerScanLine * g_handoff->fb_width * 4;
+  uint64_t pagesNeeded = (spaceNeeded + 4095) / 4096;
+  for (int i = 0; i < pagesNeeded; i++) {
+    uint64_t addr = (uint64_t)g_handoff->fb_buffer + (i * 4096);
+    vmm_map_page(vmm_get_current_pagemap(), addr, addr, 0b11);
+  }
+
   for (int idx = 0; idx < g_handoff->fb_pixelsPerScanLine * g_handoff->fb_width;
        idx++)
     g_handoff->fb_buffer[idx] = 0;

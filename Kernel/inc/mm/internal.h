@@ -23,7 +23,7 @@ extern spinlock_t _mm_spinlock;
 extern mm_alloc_data_t *_mm_allocs;
 extern uint16_t _mm_alloc_count;
 
-void _mm_add_alloc(bootproto_mmap_entry_t *entry);
+void _mm_add_alloc(bootproto_pmm_entry_t *entry);
 bool _mm_get_page_bit(uint64_t page);
 void _mm_set_page_bit(uint64_t page);
 void _mm_clear_page_bit(uint64_t page);

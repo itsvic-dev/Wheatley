@@ -17,8 +17,8 @@ void mm_init(void) {
   MM_PRINT("setting up allocation tables");
 
   // get the needed page count for _mm_pages
-  for (int i = 0; i < g_handoff->mmap_entries_length; i++) {
-    _mm_page_count += g_handoff->mmap_entry[i].pages;
+  for (int i = 0; i < g_handoff->pmm_entries_length; i++) {
+    _mm_page_count += g_handoff->pmm_entry[i].pages;
   }
   _mm_page_count = (_mm_page_count + 7) / 8;
 
@@ -29,8 +29,8 @@ void mm_init(void) {
 
   // find space
   MM_PRINT("need %d pages", total_needed_pages);
-  for (int i = 0; i < g_handoff->mmap_entries_length; i++) {
-    bootproto_mmap_entry_t *entry = &g_handoff->mmap_entry[i];
+  for (int i = 0; i < g_handoff->pmm_entries_length; i++) {
+    bootproto_pmm_entry_t *entry = &g_handoff->pmm_entry[i];
 
     if (entry->pages >= total_needed_pages && entry->type == free) {
       MM_PRINT("found space @ %#llx (%d pages)", entry->start, entry->pages);
@@ -49,8 +49,8 @@ void mm_init(void) {
   MM_PRINT("setting bits and allocs");
   memset(_mm_pages, 0xFF, _mm_page_count);
 
-  for (int i = 0; i < g_handoff->mmap_entries_length; i++) {
-    bootproto_mmap_entry_t *entry = &g_handoff->mmap_entry[i];
+  for (int i = 0; i < g_handoff->pmm_entries_length; i++) {
+    bootproto_pmm_entry_t *entry = &g_handoff->pmm_entry[i];
 
     if (entry->type == free) {
       for (int i = 0; i < entry->pages; i++) {
