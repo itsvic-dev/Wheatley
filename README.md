@@ -11,10 +11,7 @@ ComatOS is a small OS research project. It's not meant to be a serious alternati
 
 ## Running
 
-To run in QEMU, you can use the helper target `qemu`. Simply `make qemu` and you're done!
-
-This target expects OVMF to reside in `/usr/share/edk2-ovmf`. To change this, configure with `-DOVMF_PATH=/your/path/to/ovmf`.  
-To pass your own QEMU flags, configure with `"-DQEMU_ARGS=-your-args-here"`.
+To run in QEMU, use the `dev/qemu.sh` script. You can use the `.env` file to control the OVMF directory as well as extra QEMU arguments.
 
 To run on real hardware (not recommended!), copy `build/Bootloader/bootldr.efi` to a FAT32 EFI partition, as well as `build/Kernel/kernel.elf` to the root of that partition.
 
