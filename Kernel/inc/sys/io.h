@@ -12,8 +12,12 @@ uint32_t ind(uint16_t port);
 
 static inline uint64_t __readcr3(void) {
   uint64_t value;
-  __asm__ __volatile__("mov %[value], cr3" : [value] "=q"(value));
+  asm volatile("mov %[value], cr3" : [value] "=q"(value));
   return value;
+}
+
+static inline void __writecr3(uint64_t value) {
+  asm volatile("mov cr3, %[value]" ::[value] "q"(value));
 }
 
 #endif // __KERNEL_IO_H

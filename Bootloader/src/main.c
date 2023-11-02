@@ -10,6 +10,7 @@
 #include <protocol/efi-gop.h>
 #include <protocol/efi-lip.h>
 #include <protocol/efi-sfsp.h>
+#include <stdint.h>
 
 EFI_HANDLE Image;
 EFI_SYSTEM_TABLE *ST;
@@ -76,7 +77,7 @@ void Panic(char *msg) {
 uint64_t __kernelEntry;
 void JumpToKernel(uint64_t stack);
 
-bootproto_mmap_entry_type_t efi_type_to_bootproto_type[] = {
+bootproto_pmm_entry_type_t efi_type_to_bootproto_type[] = {
     reserved, reserved, reserved, free,     free,     used,     used,
     free,     reserved, reserved, reserved, reserved, reserved, reserved,
 };
@@ -127,7 +128,20 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   ASSERT(elfHeader.phdr_entry_size == sizeof(elf_phdr_t));
 
-  printf("lets read the phdr headers now\r\n");
+  // prepare handoff
+  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData,
+                             ((sizeof(bootproto_handoff_t)) / 4096) + 1,
+                             (uint64_t *)&handoff);
+  STATUS_PANIC("failed to allocate page for handoff");
+  BS->SetMem(handoff, sizeof(bootproto_handoff_t), 0);
+
+  // put handoff into the VMM sections
+  handoff->vmm_entry[handoff->vmm_entries_length++] = (bootproto_vmm_entry_t){
+      .physAddr = (uint64_t)handoff,
+      .virtAddr = (uint64_t)handoff,
+      .pages = ((sizeof(bootproto_handoff_t)) / 4096) + 1,
+      .type = RW,
+  };
 
   for (int i = 0; i < elfHeader.phdr_entries_num; i++) {
     status = kernel->SetPosition(kernel, elfHeader.phdr_table +
@@ -169,6 +183,13 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
     printf("mapped %d pages to virtual memory @ %#llx\r\n", pageCount,
            phdr.vaddr);
 
+    handoff->vmm_entry[handoff->vmm_entries_length++] = (bootproto_vmm_entry_t){
+        .physAddr = (uint64_t)physPage,
+        .virtAddr = phdr.vaddr,
+        .pages = pageCount,
+        .type = RW,
+    };
+
     BS->SetMem(physPage, phdr.memsz, 0);
 
     status = kernel->SetPosition(kernel, phdr.offset);
@@ -205,11 +226,13 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   }
   printf("new stack @ %#llx\r\n", stack);
 
-  // prepare handoff
-  status = BS->AllocatePages(AllocateAnyPages, EfiRuntimeServicesData,
-                             ((sizeof(bootproto_handoff_t)) / 4096) + 1,
-                             (uint64_t *)&handoff);
-  STATUS_PANIC("failed to allocate page for handoff");
+  // put stack into VMM entries
+  handoff->vmm_entry[handoff->vmm_entries_length++] = (bootproto_vmm_entry_t){
+      .physAddr = (uint64_t)stack,
+      .virtAddr = (uint64_t)stack,
+      .pages = 8,
+      .type = RW,
+  };
 
   // read ELF symbol table and dump it into handoff
   elf_load_symbols(&elfHeader, kernel, handoff);
@@ -247,17 +270,15 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
   BS->GetMemoryMap(&MemoryMapSize, MemoryMap, &MapKey, &DescriptorSize,
                    &DescriptorVersion);
 
-  handoff->mmap_entries_length = 0;
-
   for (int i = 0; i < (MemoryMapSize / DescriptorSize) / 2 + 1; i++) {
     EFI_MEMORY_DESCRIPTOR *memEntry =
         (EFI_MEMORY_DESCRIPTOR *)((uint64_t)MemoryMap + (i * DescriptorSize));
 
-    handoff->mmap_entry[handoff->mmap_entries_length].type =
+    handoff->pmm_entry[handoff->pmm_entries_length].type =
         efi_type_to_bootproto_type[memEntry->Type];
-    handoff->mmap_entry[handoff->mmap_entries_length].start =
+    handoff->pmm_entry[handoff->pmm_entries_length].start =
         memEntry->PhysicalStart;
-    handoff->mmap_entry[handoff->mmap_entries_length++].pages =
+    handoff->pmm_entry[handoff->pmm_entries_length++].pages =
         memEntry->NumberOfPages;
 
     totalMemSize += memEntry->NumberOfPages * 4096;

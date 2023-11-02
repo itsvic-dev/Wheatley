@@ -7,6 +7,7 @@
 #include <libk.h>
 #include <mm/init.h>
 #include <mm/mm.h>
+#include <mm/vmm.h>
 #include <panic.h>
 #include <printf.h>
 #include <sched/sched.h>
@@ -33,8 +34,9 @@ void kernel_main(bootproto_handoff_t *handoff) {
 
   // init MM
   mm_init();
+  vmm_init();
 
-  // fbtty depends on MM
+  // efifb/fbtty requires MM to be initialized
   efifb_module_init();
   fbtty_module_init();
 
