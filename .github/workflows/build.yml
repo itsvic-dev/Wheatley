@@ -16,9 +16,12 @@ jobs:
           cd build
           cmake ..
           make -j$(nproc)
+          cp Kernel/kernel.elf ./
+          cp Bootloader/bootldr.efi ./
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
+          name: ComatOS
           path: |
-            build/Kernel/kernel.elf
-            build/Bootloader/bootldr.efi
+            build/kernel.elf
+            build/bootldr.efi
