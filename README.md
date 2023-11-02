@@ -1,5 +1,7 @@
 # ComatOS
 
+[![Build](https://github.com/omametech/ComatOS/actions/workflows/build.yml/badge.svg)](https://github.com/omametech/ComatOS/actions/workflows/build.yml)
+
 ComatOS is a small OS research project. It's not meant to be a serious alternative to Linux or Windows.
 
 ## Building
