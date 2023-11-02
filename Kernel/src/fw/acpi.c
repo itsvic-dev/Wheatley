@@ -25,7 +25,7 @@ void acpi_init(void) {
     has_xsdt = true;
     xsdt = (acpi_xsdt_t *)g_handoff->rsdp.xsdtAddress;
     // we need to identity map the XSDT
-    vmm_map_page(vmm_get_current_pagemap(), g_handoff->rsdp.xsdtAddress,
+    vmm_map_page(vmm_get_kernel_pagemap(), g_handoff->rsdp.xsdtAddress,
                  g_handoff->rsdp.xsdtAddress, 0b11);
     assert(acpi_checksum(&xsdt->header));
     printf("acpi: using XSDT @ %#llx\n", xsdt);
@@ -54,10 +54,10 @@ acpi_header_t *acpi_find_table(char *sig, size_t index) {
   if (memcmp(sig, "DSDT", 4) == 0) {
     // get the DSDT from the FADT
     acpi_fadt_t *fadt = (acpi_fadt_t *)acpi_find_table("FACP", 0);
-    vmm_map_page(vmm_get_current_pagemap(), (uint64_t)fadt, (uint64_t)fadt,
+    vmm_map_page(vmm_get_kernel_pagemap(), (uint64_t)fadt, (uint64_t)fadt,
                  0b11);
     acpi_header_t *ptr = (acpi_header_t *)fadt->x_dsdt;
-    vmm_map_page(vmm_get_current_pagemap(), (uint64_t)ptr, (uint64_t)ptr, 0b11);
+    vmm_map_page(vmm_get_kernel_pagemap(), (uint64_t)ptr, (uint64_t)ptr, 0b11);
     if (acpi_checksum(ptr))
       return ptr;
     return NULL;
@@ -69,7 +69,7 @@ acpi_header_t *acpi_find_table(char *sig, size_t index) {
   for (size_t i = 0; i < entries; i++) {
     acpi_header_t *ptr = (acpi_header_t *)(xsdt->tables[i]);
     // make sure it's identity mapped
-    vmm_map_page(vmm_get_current_pagemap(), (uint64_t)ptr, (uint64_t)ptr, 0b11);
+    vmm_map_page(vmm_get_kernel_pagemap(), (uint64_t)ptr, (uint64_t)ptr, 0b11);
 
     if (!memcmp(ptr->signature, sig, 4) && acpi_checksum(ptr) &&
         count++ == index) {

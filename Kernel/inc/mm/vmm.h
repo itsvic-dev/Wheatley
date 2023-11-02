@@ -14,10 +14,10 @@ typedef struct {
 #define PAGE_EXECUTE (1ull << 63)
 #define INVALID_PHYS (0xFFFFFFFFFFFFFFFFull)
 
-uint64_t *vmm_get_current_pagemap();
-bool vmm_map_page(uint64_t *pagemap, uint64_t physAddr, uint64_t virtAddr,
+pagemap_t *vmm_get_kernel_pagemap();
+bool vmm_map_page(pagemap_t *pagemap, uint64_t physAddr, uint64_t virtAddr,
                   uint64_t flags);
-bool vmm_unmap_page(uint64_t *pagemap, uint64_t virtAddr);
+bool vmm_unmap_page(pagemap_t *pagemap, uint64_t virtAddr);
 
 void vmm_init(void);
 

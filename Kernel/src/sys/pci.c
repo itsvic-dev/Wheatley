@@ -36,7 +36,7 @@ static void *pci_get_mcfg_addr(pci_device_path_t device, uint16_t offset) {
   addr += (device.bus - entry->busStart) << 20 | device.slot << 15 |
           device.fun << 12;
   addr += offset;
-  vmm_map_page(vmm_get_current_pagemap(), addr, addr, 0b11);
+  vmm_map_page(vmm_get_kernel_pagemap(), addr, addr, 0b11);
   return (void *)addr;
 }
 

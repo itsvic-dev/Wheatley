@@ -64,7 +64,7 @@ void efifb_module_init() {
   uint64_t pagesNeeded = (spaceNeeded + 4095) / 4096;
   for (int i = 0; i < pagesNeeded; i++) {
     uint64_t addr = (uint64_t)g_handoff->fb_buffer + (i * 4096);
-    vmm_map_page(vmm_get_current_pagemap(), addr, addr, 0b11);
+    vmm_map_page(vmm_get_kernel_pagemap(), addr, addr, 0b11);
   }
 
   for (int idx = 0; idx < g_handoff->fb_pixelsPerScanLine * g_handoff->fb_width;

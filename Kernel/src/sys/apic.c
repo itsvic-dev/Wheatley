@@ -14,7 +14,7 @@
 bool x2apic = false;
 
 static uint32_t ioapic_read(uint64_t ioapic_address, size_t reg) {
-  vmm_map_page(vmm_get_current_pagemap(), ioapic_address, ioapic_address, 0b11);
+  vmm_map_page(vmm_get_kernel_pagemap(), ioapic_address, ioapic_address, 0b11);
   mmoutd((void *)ioapic_address, reg & 0xFF);
   return mmind((void *)ioapic_address + 16);
 }
