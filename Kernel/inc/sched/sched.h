@@ -12,7 +12,7 @@ typedef enum {
 } task_state_t;
 
 typedef struct sched_task {
-  uint64_t usLeft;
+  uint64_t runtime;
   uint64_t tid;
   task_state_t state;
   registers_t registers;

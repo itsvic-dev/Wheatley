@@ -27,7 +27,4 @@ void pcrb_init() {
   printf("pcrb: initialized for core %d @ %#llx\n", pcrb->apicID, pcrb);
 }
 
-pcrb_t *pcrb_get() {
-  printf("pcrb_get: readgs=%#llx\n", readgs());
-  return &pcrbs[readgs()];
-}
+pcrb_t *pcrb_get() { return &pcrbs[readgs()]; }
