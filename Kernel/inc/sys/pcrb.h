@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef struct {
-  uint8_t apicID;
+  uint64_t apicID;
   void *currentTask;
 } pcrb_t;
 

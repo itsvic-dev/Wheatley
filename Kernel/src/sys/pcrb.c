@@ -1,25 +1,33 @@
 #include "sys/cpuid.h"
 #include "sys/msr.h"
+#include <assert.h>
 #include <libk.h>
 #include <mm/mm.h>
 #include <printf.h>
 #include <sys/pcrb.h>
 
-static inline void set_gs(void *addr) { wrmsr(0xc0000101, (uint64_t)addr); }
+extern pcrb_t *pcrbs;
+
+static inline void writegs(void *addr) { wrmsr(0xc0000101, (uint64_t)addr); }
+
+static inline uint64_t readgs() {
+  uint64_t value;
+  asm volatile("mov %[value], qword ptr gs:[0]"
+               : [value] "=q"(value)::"memory");
+  return value;
+}
 
 void pcrb_init() {
   uint8_t apicID = getApicID();
-  printf("pcrb: initializing for core %d\n", apicID);
-  pcrb_t *pcrb = kmalloc(sizeof(pcrb_t));
-  memset(pcrb, 0, sizeof(pcrb_t));
+  pcrb_t *pcrb = &pcrbs[apicID];
 
   pcrb->apicID = apicID;
 
-  set_gs(pcrb);
+  writegs(pcrb);
+  printf("pcrb: initialized for core %d @ %#llx\n", pcrb->apicID, pcrb);
 }
 
 pcrb_t *pcrb_get() {
-  uint64_t gs = 0;
-  asm volatile("mov %[gs], gs" : [gs] "=q"(gs)::"memory");
-  return (pcrb_t *)gs;
+  printf("pcrb_get: readgs=%#llx\n", readgs());
+  return &pcrbs[readgs()];
 }

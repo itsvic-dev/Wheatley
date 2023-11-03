@@ -1,3 +1,5 @@
+#include "mm/mm.h"
+#include "sys/pcrb.h"
 #include <deepMain.h>
 #include <drivers/timer/hpet.h>
 #include <fw/madt.h>
@@ -18,10 +20,16 @@ uint8_t bspID;
 static spinlock_t aprLock = SPINLOCK_INIT;
 static spinlock_t bspLock = SPINLOCK_INIT;
 
+pcrb_t *pcrbs = NULL;
+
 void smp_init() {
   spinlock_wait_and_acquire(&bspLock);
   cpuid_data_t data = cpuid(1);
   bspID = data.rbx >> 24;
+
+  // set up space for pcrbs
+  pcrbs = kmalloc(lapics_length * sizeof(pcrb_t));
+  memset(pcrbs, 0, lapics_length * sizeof(pcrb_t));
 
   // copy the AP trampoline to a fixed address in low conventional mem
   memcpy((void *)0x8000, &ap_trampoline, 4096);
