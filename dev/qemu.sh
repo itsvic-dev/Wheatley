@@ -1,9 +1,9 @@
 #!/bin/bash
-# Runs ComatOS in QEMU.
+# Runs Wheatley in QEMU.
 
 ROOT="$(realpath $(dirname $0)/..)"
 BUILD="$ROOT/build"
-IMG="$BUILD/ComatOS.img"
+IMG="$BUILD/Wheatley.img"
 
 if [ -e "$ROOT/.env" ] ; then
     . "$ROOT/.env"

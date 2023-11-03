@@ -1,4 +1,4 @@
-project(ComatOSKernel)
+project(WheatleyKernel)
 
 add_executable(kernel.elf
     src/main.c src/deepMain.c src/libk.c src/panic.c src/printf.c

@@ -1,9 +1,9 @@
 #!/bin/bash
-# Creates a FAT32 image with the ComatOS kernel and bootloader.
+# Creates a FAT32 image with the Wheatley kernel and bootloader.
 
 ROOT="$(realpath $(dirname $0)/..)"
 BUILD="$ROOT/build"
-IMG="$BUILD/ComatOS.img"
+IMG="$BUILD/Wheatley.img"
 
 dd if=/dev/zero of="$IMG" bs=1M count=4 2>/dev/null
 mformat -i "$IMG" ::

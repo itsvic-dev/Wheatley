@@ -1,8 +1,10 @@
-# ComatOS
+# Wheatley
 
-[![Build](https://github.com/omametech/ComatOS/actions/workflows/build.yml/badge.svg)](https://github.com/omametech/ComatOS/actions/workflows/build.yml)
+_The intelligence dampening operating system._
 
-ComatOS is a small OS research project. It's not meant to be a serious alternative to Linux or Windows.
+[![Build](https://github.com/omametech/Wheatley/actions/workflows/build.yml/badge.svg)](https://github.com/omametech/Wheatley/actions/workflows/build.yml)
+
+Wheatley is a small OS research project. It's not meant to be a serious alternative to Linux or Windows.
 
 ## Building
 

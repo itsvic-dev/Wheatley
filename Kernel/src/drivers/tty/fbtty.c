@@ -5,6 +5,9 @@
 #include <printf.h>
 #include <sys/spinlock.h>
 
+#define BG_COLOR (0x653808)
+#define FG_COLOR (0xffa55b)
+
 static spinlock_t spinlock = SPINLOCK_INIT;
 
 extern char _binary_Tamsyn8x16r_psf_start;
@@ -45,7 +48,7 @@ void fbtty_putchar(char c) {
     for (i = 0; i < _fbtty_font->width; i++) {
       // free optimization: setpixel only if the glyph bit is actually set
       if (shifted(glyphData[j], i))
-        _fbtty_fb->setpixel(realX + i, realY + j, 0xFFFFFF);
+        _fbtty_fb->setpixel(realX + i, realY + j, FG_COLOR);
     }
   }
 
@@ -66,7 +69,7 @@ check_space:
     uint64_t count = _fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4;
     _fbtty_fb->readpixels(_fbtty_scrollbackBuf, offset, count);
     _fbtty_fb->memcpy(_fbtty_scrollbackBuf, 0, count);
-    _fbtty_fb->pixset(0, count / 4, offset);
+    _fbtty_fb->pixset(BG_COLOR, count / 4, offset);
     _fbtty_cy--;
   }
 
@@ -104,6 +107,8 @@ void fbtty_module_init() {
   _fbtty_fbh = _fbtty_fb->get_info()->height;
   _fbtty_scrollbackBuf =
       kmalloc(_fbtty_fbw * (_fbtty_fbh - _fbtty_font->height) * 4);
+
+  _fbtty_fb->pixset(BG_COLOR, 0, _fbtty_fbw * _fbtty_fbh);
 
   tty_register_driver(&fbtty_driver);
 }

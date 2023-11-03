@@ -29,7 +29,7 @@ uint32_t multiplier = 0;
 void hpet_init() {
   hpet = (hpet_t *)acpi_find_table("HPET", 0);
   if (hpet == NULL)
-    panic("ComatOS requires an HPET", 0);
+    panic("Wheatley requires an HPET", 0);
 
   printf("hpet: HPET @ %#llx\n", hpet);
   hpetData = (void *)hpet->gas.base;
