@@ -29,6 +29,6 @@ void timer_sched_oneshot(uint8_t isr, uint32_t us) {
   timer_stop_sched();
   lapic_write(APIC_LVT_TIMER, isr | 0x20000);
   lapic_write(APIC_TIMER_DIV, 3);
-  lapic_write(APIC_INIT_COUNT, 0xFFFFFFFF - ((ticksIn10ms / 10) * (us / 1000)));
+  lapic_write(APIC_INIT_COUNT, 0xFFFFFFFF - (ticksIn10ms * (us / 1000) / 10));
   asm("sti");
 }

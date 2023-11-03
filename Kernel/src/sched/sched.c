@@ -36,7 +36,7 @@ void sched_task_ended(void) {
   assert(pcrb->currentTask != NULL);
   assert(pcrb->currentTask != firstTask || !"first task should never return");
   sched_task_t *task = pcrb->currentTask;
-  printf("sched (%d): task %#llx returned\n", pcrb->apicID, task);
+  // printf("sched (%d): task %#llx returned\n", pcrb->apicID, task);
   task->state = TASK_RETURNED;
   spinlock_release(&task->lock);
   pcrb->currentTask = NULL;
@@ -65,6 +65,20 @@ static sched_task_t *find_free_task() {
 
   // FIXME: if task is still NULL, refresh runtimes of all eligible (running)
   // tasks and run the search loop again
+  if (task == NULL) {
+    sched_task_t *task = firstTask;
+    printf("sched: refreshing task runtimes\n");
+    while (task != NULL) {
+      if (!spinlock_acquire(&task->lock))
+        continue; // task is being processed, let's not worry about it
+      if (task->state == TASK_RUNNING) {
+        task->runtime = 200 * 1000;
+      }
+      spinlock_release(&task->lock);
+      task = task->next;
+    }
+    return find_free_task();
+  }
   return task;
 }
 
@@ -89,9 +103,10 @@ void sched_resched(registers_t *registers) {
   }
   pcrb->currentTask = task;
 
+  printf("sched (%d): handling task %#llx\n", pcrb->apicID, task);
+
   // make sure we initialise task
   if (task->state == TASK_NEEDS_TO_INIT) {
-    printf("resched (%d): initting task %#llx\n", pcrb->apicID, task);
     // FIXME: we're assuming every task is a kernel task
     task->registers.cs = 0x8;
     task->registers.ss = 0x10;

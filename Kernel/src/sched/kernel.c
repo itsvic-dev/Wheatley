@@ -17,6 +17,8 @@ void kernelTaskEntry(void) {
   for (int i = 0; i < 64; i++)
     sched_spawn_kernel_task(moreThreads);
 
+  printf("kernel task spawned 64 threads\n");
+
   for (;;)
     asm("hlt");
 }
