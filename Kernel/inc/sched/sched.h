@@ -26,4 +26,6 @@ void sched_init(void);
 // starts the scheduler loop
 void sched_start(void);
 
+void sched_spawn_kernel_task(void *entrypoint);
+
 #endif

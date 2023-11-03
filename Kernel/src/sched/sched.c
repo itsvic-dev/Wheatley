@@ -16,8 +16,9 @@
     asm("hlt");
 
 uint64_t nextTid = 0;
-// a pointer to the first task, usually the main kernel task
 static sched_task_t *firstTask = NULL;
+static sched_task_t *lastTask = NULL;
+static spinlock_t globalTaskLock = SPINLOCK_INIT;
 
 void sched_start(void) {
   assert(firstTask != NULL);
@@ -40,6 +41,8 @@ void sched_task_ended(void) {
   spinlock_release(&task->lock);
   pcrb->currentTask = NULL;
 
+  // FIXME: remove this task from the list and free it
+
   // reschedule again
   asm("sti; int 48");
 }
@@ -61,7 +64,7 @@ static sched_task_t *find_free_task() {
   }
 
   // FIXME: if task is still NULL, refresh runtimes of all eligible (running)
-  // tasks
+  // tasks and run the search loop again
   return task;
 }
 
@@ -111,10 +114,26 @@ void sched_resched(registers_t *registers) {
 void sched_init(void) {
   isr_register_handler(48, &sched_resched);
   // set up first task for execution
+  spinlock_wait_and_acquire(&globalTaskLock);
   firstTask = kmalloc(sizeof(sched_task_t));
   memset(firstTask, 0, sizeof(sched_task_t));
   firstTask->runtime = 200 * 1000; // 200 ms
   firstTask->tid = nextTid++;
   firstTask->state = TASK_NEEDS_TO_INIT;
   firstTask->registers.rip = (uint64_t)&kernelTaskEntry;
+  lastTask = firstTask;
+  spinlock_release(&globalTaskLock);
+}
+
+void sched_spawn_kernel_task(void *entrypoint) {
+  spinlock_wait_and_acquire(&globalTaskLock);
+  sched_task_t *newTask = kmalloc(sizeof(sched_task_t));
+  memset(newTask, 0, sizeof(sched_task_t));
+  newTask->runtime = 200 * 1000;
+  newTask->tid = nextTid++;
+  newTask->state = TASK_NEEDS_TO_INIT;
+  newTask->registers.rip = (uint64_t)entrypoint;
+  lastTask->next = newTask;
+  lastTask = newTask;
+  spinlock_release(&globalTaskLock);
 }
