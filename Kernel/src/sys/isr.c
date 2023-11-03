@@ -268,7 +268,7 @@ void isr_write(void) {
 }
 
 static event_handler_t event_handlers[256] = {NULL};
-static const char isr_exceptions[32][128] = {
+static const char isr_exceptions[32][35] = {
     "Divide Error (#DE)",
     "Debug Exception (#DB)",
     "NMI Interrupt",

@@ -47,7 +47,7 @@ void sched_task_ended(void) {
   asm("sti; int 48");
 }
 
-static sched_task_t *find_free_task() {
+static sched_task_t *find_free_task(bool didRefresh) {
   sched_task_t *task = firstTask;
   while (task != NULL) {
     // if task isn't locked, make sure we can use it
@@ -55,19 +55,19 @@ static sched_task_t *find_free_task() {
       // if the task's runtime has expired, we can skip it
       if (task->runtime == 0) {
         spinlock_release(&task->lock);
-        continue;
+        goto moveOn;
       }
       return task;
     }
     // otherwise, move on
+  moveOn:
     task = task->next;
   }
 
-  // FIXME: if task is still NULL, refresh runtimes of all eligible (running)
+  // if task is still NULL, refresh runtimes of all eligible (running)
   // tasks and run the search loop again
-  if (task == NULL) {
+  if (task == NULL && !didRefresh) {
     sched_task_t *task = firstTask;
-    printf("sched: refreshing task runtimes\n");
     while (task != NULL) {
       if (!spinlock_acquire(&task->lock))
         continue; // task is being processed, let's not worry about it
@@ -77,8 +77,9 @@ static sched_task_t *find_free_task() {
       spinlock_release(&task->lock);
       task = task->next;
     }
-    return find_free_task();
+    return find_free_task(true);
   }
+  printf("sched: we ran out of tasks!!\n");
   return task;
 }
 
@@ -86,24 +87,27 @@ void sched_resched(registers_t *registers) {
   asm("cli");
   pcrb_t *pcrb = pcrb_get();
   sched_task_t *task = pcrb->currentTask;
-  if (task) {
+  timer_stop_sched();
+  // printf("sched (%d): hi, initial task=%#llx\n", pcrb->apicID, task);
+  if (task != NULL) {
     // runtime for this task has (likely) run out, let's find another free task
     task->registers = *registers;
     spinlock_release(&task->lock);
     task = NULL;
   }
-  if (!task) {
-    task = find_free_task();
-  }
+  if (task == NULL)
+    task = find_free_task(false);
+
+  // if task is STILL null, reschedule in 10ms
   if (task == NULL) {
-    // reschedule in 10ms
     apic_eoi();
     timer_sched_oneshot(48, 10 * 1000);
-    return;
+    asm("sti");
+    HALT();
   }
   pcrb->currentTask = task;
 
-  printf("sched (%d): handling task %#llx\n", pcrb->apicID, task);
+  // printf("sched (%d): handling task %#llx\n", pcrb->apicID, task);
 
   // make sure we initialise task
   if (task->state == TASK_NEEDS_TO_INIT) {
@@ -120,10 +124,10 @@ void sched_resched(registers_t *registers) {
   uint64_t runtime = task->runtime;
   // FIXME: we need a better way of measuring task's remaining runtime
   task->runtime = 0;
-  *registers = task->registers;
   apic_eoi();
+  *registers = task->registers;
   timer_sched_oneshot(48, runtime);
-  return;
+  asm("sti");
 }
 
 void sched_init(void) {

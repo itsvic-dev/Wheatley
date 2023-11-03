@@ -10,10 +10,9 @@ extern pcrb_t *pcrbs;
 
 static inline void writegs(void *addr) { wrmsr(0xc0000101, (uint64_t)addr); }
 
-static inline uint64_t readgs() {
-  uint64_t value;
-  asm volatile("mov %[value], qword ptr gs:[0]"
-               : [value] "=q"(value)::"memory");
+static inline uint8_t readgs() {
+  uint8_t value;
+  asm volatile("mov %[value], gs:[0]" : [value] "=q"(value)::"memory");
   return value;
 }
 

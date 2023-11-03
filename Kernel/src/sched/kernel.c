@@ -7,6 +7,8 @@
 static void moreThreads(void) {
   pcrb_t *pcrb = pcrb_get();
   printf("hi, did you know i'm yet another task on core %d?!\n", pcrb->apicID);
+  for (;;)
+    ;
 }
 
 void kernelTaskEntry(void) {
