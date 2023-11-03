@@ -53,7 +53,7 @@ void hpet_init();
 void hpet_sleep(uint64_t ns);
 uint64_t hpet_time();
 
-static inline void udelay(uint64_t us) { hpet_sleep(us * 10); }
+static inline void udelay(uint64_t us) { hpet_sleep(us * 1000); }
 
 static inline void mdelay(uint64_t ms) { udelay(ms * 1000); }
 

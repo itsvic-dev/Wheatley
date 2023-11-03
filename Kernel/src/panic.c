@@ -31,6 +31,8 @@ void panic_backtrace(uint64_t maxFrames) {
   asm("mov %0, rbp" : "=q"(frame)::); // load RBP into the stack frame ptr
 
   for (uint64_t i = 0; frame && i < maxFrames; ++i) {
+    if (frame->rbp == 0 || frame->rip == 0)
+      return;
     bootproto_symbol_t *symbol = find_symbol(frame->rip);
     if (symbol != 0)
       printf("  0x%016llx (%s+%#x)\n", frame->rip, symbol->name,

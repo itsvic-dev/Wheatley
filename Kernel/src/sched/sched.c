@@ -27,7 +27,22 @@ void sched_start(void) {
   asm("int 48");
 }
 
-void sched_task_ended(void) { printf("hi a task ended\n"); }
+void sched_task_ended(void) {
+  timer_stop_sched();
+  asm("cli");
+
+  pcrb_t *pcrb = pcrb_get();
+  assert(pcrb->currentTask != NULL);
+  assert(pcrb->currentTask != firstTask || !"first task should never return");
+  sched_task_t *task = pcrb->currentTask;
+  printf("sched (%d): task %#llx returned\n", pcrb->apicID, task);
+  task->state = TASK_RETURNED;
+  spinlock_release(&task->lock);
+  pcrb->currentTask = NULL;
+
+  // reschedule again
+  asm("sti; int 48");
+}
 
 static sched_task_t *find_free_task() {
   sched_task_t *task = firstTask;
@@ -45,18 +60,23 @@ static sched_task_t *find_free_task() {
     task = task->next;
   }
 
+  // FIXME: if task is still NULL, refresh runtimes of all eligible (running)
+  // tasks
   return task;
 }
 
 void sched_resched(registers_t *registers) {
+  asm("cli");
   pcrb_t *pcrb = pcrb_get();
   sched_task_t *task = pcrb->currentTask;
+  if (task) {
+    // runtime for this task has (likely) run out, let's find another free task
+    task->registers = *registers;
+    spinlock_release(&task->lock);
+    task = NULL;
+  }
   if (!task) {
     task = find_free_task();
-    pcrb->currentTask = task;
-  } else {
-    // save the task's registers
-    task->registers = *registers;
   }
   if (task == NULL) {
     // reschedule in 10ms
@@ -64,6 +84,7 @@ void sched_resched(registers_t *registers) {
     timer_sched_oneshot(48, 10 * 1000);
     return;
   }
+  pcrb->currentTask = task;
 
   // make sure we initialise task
   if (task->state == TASK_NEEDS_TO_INIT) {
