@@ -1,3 +1,4 @@
+#include "mm/vmm.h"
 #include <fw/acpi.h>
 #include <fw/madt.h>
 #include <panic.h>
@@ -66,4 +67,6 @@ void madt_init() {
   }
 
   printf("madt: LAPIC @ %#llx\n", lapic_addr);
+  vmm_map_page(vmm_get_kernel_pagemap(), (uint64_t)lapic_addr,
+               (uint64_t)lapic_addr, 0b11);
 }
