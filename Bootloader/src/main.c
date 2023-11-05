@@ -1,4 +1,5 @@
 #include "assert.h"
+#include "bmp3.h"
 #include "bootproto.h"
 #include "elf.h"
 #include "elfloader.h"
@@ -71,7 +72,7 @@ bool guidMatches(EFI_GUID guid1, EFI_GUID guid2) {
 void Panic(char *msg) {
   printf("panic: %s\r\n", msg);
   for (;;)
-    asm("int3");
+    asm("hlt");
 }
 
 uint64_t __kernelEntry;
@@ -89,14 +90,20 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   ST->ConOut->ClearScreen(ST->ConOut);
 
-  printf("hello, world!\r\n");
   EFI_STATUS status;
 
-  printf("fucking write protection in the ass\r\n");
+  // get GOP
+  EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
+  status = BS->LocateProtocol(&gopGuid, NULL, (void **)&gop);
+  STATUS_PANIC("failed to get GOP");
+
+  bmp3_display(gop);
+
+  // fuck write protection lololol
   __writecr0(__readcr0() & ~(1 << 16));
 
   uint64_t *curPage = (uint64_t *)__readcr3();
-  printf("curPage: %#llx\r\n", curPage);
 
   EFI_LOADED_IMAGE_PROTOCOL *loadedImage;
   EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *rootfs;
@@ -239,12 +246,6 @@ EFI_STATUS efi_main(EFI_HANDLE image, EFI_SYSTEM_TABLE *st) {
 
   // handoff->rsdp = *rsdp;
   BS->CopyMem(&handoff->rsdp, rsdp, rsdp->revision == 0 ? 20 : 36);
-
-  // get GOP for handoff
-  EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
-  EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
-  status = BS->LocateProtocol(&gopGuid, NULL, (void **)&gop);
-  STATUS_PANIC("failed to get GOP");
 
   // pass framebuffer info from GOP to handoff
   handoff->fb_buffer = (uint32_t *)gop->Mode->FrameBufferBase;

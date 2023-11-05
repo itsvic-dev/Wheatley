@@ -21,7 +21,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ComatOS
+          name: Wheatley
           path: |
             build/kernel.elf
             build/bootldr.efi
