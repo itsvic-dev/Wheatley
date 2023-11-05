@@ -5,8 +5,8 @@
 #include <printf.h>
 #include <sys/spinlock.h>
 
-#define BG_COLOR (0x653808)
-#define FG_COLOR (0xffa55b)
+#define BG_COLOR (0x180a0a)
+#define FG_COLOR (0xf49445)
 
 static spinlock_t spinlock = SPINLOCK_INIT;
 
