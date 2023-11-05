@@ -7,7 +7,7 @@ set(CMAKE_C_FLAGS "-Wall -Werror -ffreestanding -mno-red-zone -nostdlib -masm=in
 set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf64")
 set(CMAKE_C_COMPILER_TARGET "x86_64-pc-none-elf")
 
-project(ComatOS LANGUAGES C ASM_NASM)
+project(Wheatley LANGUAGES C ASM_NASM)
 
 add_link_options(-fuse-ld=lld -nostdlib)
 

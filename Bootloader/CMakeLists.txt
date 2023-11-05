@@ -7,8 +7,15 @@ set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <DEFINES> <INCLUDES
 project(bootldr LANGUAGES C ASM_NASM)
 
 add_executable(bootldr
-    src/main.c src/elfloader.c src/jump.asm src/helpers.c src/paging.c
+    src/main.c src/bmp3.c src/elfloader.c src/jump.asm src/helpers.c src/paging.c
     src/printf.c
+    "${CMAKE_CURRENT_BINARY_DIR}/logo.o"
+)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/logo.o
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND objcopy -I binary -O pe-x86-64 -B i386 logo.bmp ${CMAKE_CURRENT_BINARY_DIR}/logo.o
 )
 
 target_compile_options(
