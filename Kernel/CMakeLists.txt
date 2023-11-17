@@ -2,6 +2,7 @@ project(WheatleyKernel)
 
 add_executable(kernel.elf
     src/main.c src/deepMain.c src/libk.c src/panic.c src/printf.c
+    src/string.asm src/string.c
     
     src/fw/acpi.c src/fw/laihost.c src/fw/madt.c
     
