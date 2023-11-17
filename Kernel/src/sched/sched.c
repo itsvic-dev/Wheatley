@@ -52,34 +52,18 @@ static sched_task_t *find_free_task(bool didRefresh) {
   while (task != NULL) {
     // if task isn't locked, make sure we can use it
     if (spinlock_acquire(&task->lock)) {
-      // if the task's runtime has expired, we can skip it
-      if (task->runtime == 0) {
-        spinlock_release(&task->lock);
-        goto moveOn;
+      // if the task's runtime hasn't expired, we jump to the end so we can
+      // return it
+      if (task->runtime != 0) {
+        goto end;
       }
-      return task;
+      spinlock_release(&task->lock);
     }
-    // otherwise, move on
-  moveOn:
     task = task->next;
   }
 
-  // if task is still NULL, refresh runtimes of all eligible (running)
-  // tasks and run the search loop again
-  if (task == NULL && !didRefresh) {
-    sched_task_t *task = firstTask;
-    while (task != NULL) {
-      if (!spinlock_acquire(&task->lock))
-        continue; // task is being processed, let's not worry about it
-      if (task->state == TASK_RUNNING) {
-        task->runtime = 200 * 1000;
-      }
-      spinlock_release(&task->lock);
-      task = task->next;
-    }
-    return find_free_task(true);
-  }
-  printf("sched: we ran out of tasks!!\n");
+  // printf("sched: we ran out of tasks!!\n");
+end:
   return task;
 }
 
@@ -100,8 +84,8 @@ void sched_resched(registers_t *registers) {
 
   // if task is STILL null, reschedule in 10ms
   if (task == NULL) {
-    apic_eoi();
     timer_sched_oneshot(48, 10 * 1000);
+    apic_eoi();
     asm("sti");
     HALT();
   }
@@ -124,9 +108,9 @@ void sched_resched(registers_t *registers) {
   uint64_t runtime = task->runtime;
   // FIXME: we need a better way of measuring task's remaining runtime
   task->runtime = 0;
-  apic_eoi();
   *registers = task->registers;
   timer_sched_oneshot(48, runtime);
+  apic_eoi();
   asm("sti");
 }
 
@@ -136,7 +120,7 @@ void sched_init(void) {
   spinlock_wait_and_acquire(&globalTaskLock);
   firstTask = kmalloc(sizeof(sched_task_t));
   memset(firstTask, 0, sizeof(sched_task_t));
-  firstTask->runtime = 200 * 1000; // 200 ms
+  firstTask->runtime = 10 * 1000; // 200 ms
   firstTask->tid = nextTid++;
   firstTask->state = TASK_NEEDS_TO_INIT;
   firstTask->registers.rip = (uint64_t)&kernelTaskEntry;
@@ -148,7 +132,7 @@ void sched_spawn_kernel_task(void *entrypoint) {
   spinlock_wait_and_acquire(&globalTaskLock);
   sched_task_t *newTask = kmalloc(sizeof(sched_task_t));
   memset(newTask, 0, sizeof(sched_task_t));
-  newTask->runtime = 200 * 1000;
+  newTask->runtime = 10 * 1000;
   newTask->tid = nextTid++;
   newTask->state = TASK_NEEDS_TO_INIT;
   newTask->registers.rip = (uint64_t)entrypoint;
