@@ -1,3 +1,4 @@
+#include "sys/apic.h"
 #include <panic.h>
 #include <printf.h>
 #include <sys/idt.h>
@@ -267,7 +268,7 @@ void isr_write(void) {
 }
 
 static event_handler_t event_handlers[256] = {NULL};
-static const char isr_exceptions[32][128] = {
+static const char isr_exceptions[32][35] = {
     "Divide Error (#DE)",
     "Debug Exception (#DB)",
     "NMI Interrupt",
@@ -317,4 +318,5 @@ void isr_handle(registers_t *r) {
   }
 
   printf("isr: Unhandled ISR: %d\n", r->isrNumber);
+  apic_eoi();
 }

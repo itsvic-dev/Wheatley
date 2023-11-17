@@ -20,4 +20,4 @@ exec qemu-system-x86_64 \
     -m 128M -cpu host -enable-kvm -serial stdio \
     -smp sockets=1,cores=4,threads=1 \
     -drive if=pflash,readonly=on,file="${OVMF_PATH}/OVMF_CODE.fd" \
-    -hda "$IMG"
+    -hda "$IMG" "$@"

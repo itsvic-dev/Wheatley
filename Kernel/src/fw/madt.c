@@ -39,19 +39,15 @@ void madt_init() {
       lapic_addr = (uint32_t *)((madt_lapic_addr_override_t *)record)->address;
       break;
     case LAPIC:
-      printf("apic: got LAPIC #%d\n", lapics_length);
       lapics[lapics_length++] = (madt_lapic_t *)record;
       break;
     case IOAPIC:
-      printf("apic: got IOAPIC #%d\n", ioapics_length);
       ioapics[ioapics_length++] = (madt_ioapic_t *)record;
       break;
     case IOAPIC_INTERRUPT_SOURCE_OVERRIDE:
-      printf("apic: got ISO #%d\n", isos_length);
       isos[isos_length++] = (madt_ioapic_iso_t *)record;
       break;
     case LAPIC_NMI:
-      printf("apic: got NMI #%d\n", nmis_length);
       nmis[nmis_length++] = (madt_lapic_nmi_t *)record;
       break;
     default:

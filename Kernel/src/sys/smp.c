@@ -1,3 +1,5 @@
+#include "mm/mm.h"
+#include "sys/pcrb.h"
 #include <deepMain.h>
 #include <drivers/timer/hpet.h>
 #include <fw/madt.h>
@@ -15,11 +17,17 @@ void ap_trampoline(void);
 
 volatile uint8_t aprunning = 0;
 uint8_t bspID;
-spinlock_t apRunningSpinlock = SPINLOCK_INIT;
+static spinlock_t aprLock = SPINLOCK_INIT;
+
+pcrb_t *pcrbs = NULL;
 
 void smp_init() {
   cpuid_data_t data = cpuid(1);
   bspID = data.rbx >> 24;
+
+  // set up space for pcrbs
+  pcrbs = kmalloc(lapics_length * sizeof(pcrb_t));
+  memset(pcrbs, 0, lapics_length * sizeof(pcrb_t));
 
   // copy the AP trampoline to a fixed address in low conventional mem
   memcpy((void *)0x8000, &ap_trampoline, 4096);
@@ -64,9 +72,9 @@ void smp_init() {
       } while (lapic_read(0x300) & (1 << 12)); // wait for delivery
     }
   }
-  spinlock_wait_and_acquire(&apRunningSpinlock);
+  spinlock_wait_and_acquire(&aprLock);
   printf("smp: APs running=%d\n", aprunning);
-  spinlock_release(&apRunningSpinlock);
+  spinlock_release(&aprLock);
 
   // done initialising APs, let's enter deep main
   deepMain();
@@ -74,9 +82,9 @@ void smp_init() {
 
 void ap_startup() {
   // increment `aprunning` because lol
-  spinlock_wait_and_acquire(&apRunningSpinlock);
+  spinlock_wait_and_acquire(&aprLock);
   aprunning++;
-  spinlock_release(&apRunningSpinlock);
+  spinlock_release(&aprLock);
 
   // bring the CPU back up to speed with the rest of the system
   gdt_reload();

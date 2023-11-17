@@ -54,9 +54,9 @@ uint64_t hpet_time() {
   return *(uint64_t *)(hpetData + 0xF0) / multiplier;
 }
 
-// sleep for N*100 ns
+// sleep for N/100 ns
 void hpet_sleep(uint64_t ns) {
-  uint64_t comparatorTime = hpet_time() + ns;
+  uint64_t comparatorTime = hpet_time() + (ns / 100);
   while (hpet_time() < comparatorTime)
     asm("pause");
 }

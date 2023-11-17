@@ -126,7 +126,6 @@ void lapic_init() {
   uint64_t apic_msr = rdmsr(0x1B);
   apic_msr |= 1 << 11;
   if (flags.rcx & (1 << 21)) {
-    printf("apic: x2APIC available, using that\n");
     x2apic = true;
     // set x2APIC flag
     apic_msr |= 1 << 10;
@@ -134,7 +133,6 @@ void lapic_init() {
   wrmsr(0x1B, apic_msr);
 
   if (madt->flags & 1) {
-    printf("apic: disabling old PIC\n");
     // remap the PIC
     outb(0x20, 0x11);
     outb(0xA0, 0x11);

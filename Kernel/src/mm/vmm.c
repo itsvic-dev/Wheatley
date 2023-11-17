@@ -114,8 +114,8 @@ void vmm_init(void) {
   }
 
   // identity map EFI memory sections
+  printf("vmm: mapping EFI sections\n");
   for (int i = 0; i < g_handoff->pmm_entries_length; i++) {
-    printf("vmm: mapping EFI section %d\n", i);
     bootproto_pmm_entry_t *entry = &g_handoff->pmm_entry[i];
     for (int j = 0; j < entry->pages; j++) {
       uint64_t offset = j * 4096;
